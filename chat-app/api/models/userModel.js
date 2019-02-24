@@ -1,7 +1,10 @@
-let mongoose = require('mongoose');
+let mongoose = require("mongoose");
+let Schema = mongoose.Schema;
+
 let bcrypt = require("bcrypt-nodejs");
+
 //Schema
-let UserSchema = new mongoose.Schema({
+let User = new Schema({
     fullName: {
         type: String,
         required: true,
@@ -16,7 +19,8 @@ let UserSchema = new mongoose.Schema({
     email: {
         type: String,
         trim: true,
-        required: true
+        required: true,
+        unique: true
     },
     hash_password: {
         type: String,
@@ -26,14 +30,12 @@ let UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     }
-
 });
 
-//compare hash and real password
-UserSchema.methods.comparePasswords = function(pass) {
+//Compare Hash and REAL Password
+User.methods.comparePasswords = function(pass) {
     return bcrypt.compareSync(pass, this.hash_password);
 };
 
-
-//compile and export
-exports = mongoose.model('User', UserSchema);
+//Compile and Export
+exports = mongoose.model("User", User);
