@@ -314,8 +314,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _react = __webpack_require__(0);
 
-var _react2 = _interopRequireDefault(_react);
-
 var _reactDom = __webpack_require__(8);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
@@ -338,18 +336,16 @@ document.addEventListener("DOMContentLoaded", function (e) {
     _reactDom2.default.render(_ref, root);
 });
 
-var _ref2 = _jsx("div", {}, void 0, _jsx("h3", {}, void 0, "Hello from the other side"));
+var App = function (_Component) {
+    _inherits(App, _Component);
 
-var TestComponent = function (_React$Component) {
-    _inherits(TestComponent, _React$Component);
+    function App(props) {
+        _classCallCheck(this, App);
 
-    function TestComponent(props) {
-        _classCallCheck(this, TestComponent);
-
-        return _possibleConstructorReturn(this, (TestComponent.__proto__ || Object.getPrototypeOf(TestComponent)).call(this, props));
+        return _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
     }
 
-    _createClass(TestComponent, [{
+    _createClass(App, [{
         key: "render",
         value: function render() {
 
@@ -357,10 +353,72 @@ var TestComponent = function (_React$Component) {
         }
     }]);
 
-    return TestComponent;
-}(_react2.default.Component);
+    return App;
+}(_react.Component);
 
-var _ref = _jsx(TestComponent, {});
+var _ref = _jsx(App, {});
+
+var ChatContainer = function (_Component2) {
+    _inherits(ChatContainer, _Component2);
+
+    function ChatContainer(props) {
+        _classCallCheck(this, ChatContainer);
+
+        return _possibleConstructorReturn(this, (ChatContainer.__proto__ || Object.getPrototypeOf(ChatContainer)).call(this, props));
+    }
+
+    _createClass(ChatContainer, [{
+        key: "render",
+        value: function render() {}
+    }]);
+
+    return ChatContainer;
+}(_react.Component);
+
+var _ref3 = _jsx("div", {
+    id: "chat-bar-container"
+}, void 0, _jsx("form", {
+    id: "chat-form"
+}, void 0, _jsx("input", {
+    id: "chat-input",
+    type: "text",
+    placeholder: "Type your Message..."
+}), _jsx("button", {
+    type: "submit",
+    id: "chat-submit",
+    className: "btn btn-success"
+}, void 0, "Send Message")));
+
+var ChatInputBar = function (_Component3) {
+    _inherits(ChatInputBar, _Component3);
+
+    function ChatInputBar(props) {
+        _classCallCheck(this, ChatInputBar);
+
+        return _possibleConstructorReturn(this, (ChatInputBar.__proto__ || Object.getPrototypeOf(ChatInputBar)).call(this, props));
+    }
+
+    _createClass(ChatInputBar, [{
+        key: "render",
+        value: function render() {
+            return _ref3;
+        }
+    }]);
+
+    return ChatInputBar;
+}(_react.Component);
+
+var _ref2 = _jsx("div", {
+    className: "flex-parent"
+}, void 0, _jsx("div", {
+    className: "flex-container-horz flex-grow"
+}, void 0, _jsx("div", {
+    id: "side-area",
+    className: "col-md-4 flex-grow-2"
+}, void 0, "Side"), _jsx("div", {
+    id: "main-area",
+    className: "col-md-9 flex-grow-3"
+}, void 0, "MAIN")), _jsx(ChatInputBar, {}));
 
 /***/ }),
 /* 6 */
