@@ -1,0 +1,19 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^4.0.5",
+    "laravel-mix": "^4.0.14",
+    "webpack": "^4.29.5"
+  },
+  "dependencies": {
+    "react-dom": "^16.8.3"
+  }
+}
