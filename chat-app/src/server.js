@@ -9,7 +9,7 @@ io.on('connection', (socket) => {
 
     socket.on("chat-message", (msg) => {
         console.log("New Message: ", msg);
-        socket.emit("chat-message-new: ", msg);
+        socket.broadcast.emit("chat-message-new: ", msg);
     });
 
 });

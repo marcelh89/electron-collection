@@ -4943,13 +4943,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*const io = require('socket.io-client');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               let socket = io('http://localhost:3000');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               socket.emit("chat-message", "Hello There");*/
 
 var io = __webpack_require__(42);
 
-var socket = io('http://localhost:3000');
-
-socket.emit("chat-message", "Hello There");
+var ChatStore = __webpack_require__(76);
 
 var root = document.getElementById("root");
 
@@ -4967,24 +4969,36 @@ var App = function (_Component) {
 
         var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
-        _this.state = {
-            url: "http://localhost:3000"
-        };
+        _this.state = { url: "http://localhost:3000" };
         return _this;
     }
 
     _createClass(App, [{
-        key: 'componentWillMount',
+        key: "componentWillMount",
         value: function componentWillMount() {
+            var _this2 = this;
+
+            console.log("componentWillMount");
             this.initSocket();
+
+            ChatStore.on("new-message", function (msg) {
+                _this2.io.emit("chat-message", msg);
+                console.log("New Message " + msg);
+            });
+
+            this.io.on("chat-message", function (msg) {
+                console.log("Message from another user ", msg);
+            });
         }
     }, {
-        key: 'initSocket',
+        key: "initSocket",
         value: function initSocket() {
+            console.log("initSocket");
             this.io = io(this.state.url);
+            console.log(this.io);
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
 
             return _ref2;
@@ -5006,7 +5020,7 @@ var ChatContainer = function (_Component2) {
     }
 
     _createClass(ChatContainer, [{
-        key: 'render',
+        key: "render",
         value: function render() {}
     }]);
 
@@ -5019,49 +5033,63 @@ var ChatInputBar = function (_Component3) {
     function ChatInputBar(props) {
         _classCallCheck(this, ChatInputBar);
 
-        return _possibleConstructorReturn(this, (ChatInputBar.__proto__ || Object.getPrototypeOf(ChatInputBar)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (ChatInputBar.__proto__ || Object.getPrototypeOf(ChatInputBar)).call(this, props));
+
+        _this4.state = {
+            message: ""
+        };
+
+        console.log("ChatInputBar.constructor");
+
+        return _this4;
     }
 
     _createClass(ChatInputBar, [{
-        key: 'sendMessage',
+        key: "sendMessage",
         value: function sendMessage(e) {
+            console.log("ChatInputBar.sendMessage");
+
             e.preventDefault();
-            console.log("Message: " + this.msgInput.value);
+            this.setState({ message: this.msgInput.value });
+            ChatStore.addMessage(this.msgInput.value);
+            //console.log("Message: " + this.msgInput.value);
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
-            var _this4 = this;
+            var _this5 = this;
 
-            return _jsx('div', {
-                id: 'chat-bar-container'
-            }, void 0, _jsx('form', {
-                id: 'chat-form'
-            }, void 0, _react2.default.createElement('input', { key: 0, id: 'chat-input', type: 'text', placeholder: 'Type your Message...', ref: function ref(input) {
-                    _this4.msgInput = input;
-                } }), _jsx('button', {
-                type: 'submit',
-                id: 'chat-submit',
-                className: 'btn btn-success',
+            console.log("ChatInputBar.render");
+
+            return _jsx("div", {
+                id: "chat-bar-container"
+            }, void 0, _jsx("form", {
+                id: "chat-form"
+            }, void 0, _react2.default.createElement("input", { key: 0, id: "chat-input", type: "text", placeholder: "Type your Message...", ref: function ref(input) {
+                    _this5.msgInput = input;
+                } }), _jsx("button", {
+                type: "submit",
+                id: "chat-submit",
+                className: "btn btn-success",
                 onClick: this.sendMessage.bind(this)
-            }, void 0, 'Send Message')));
+            }, void 0, "Send Message")));
         }
     }]);
 
     return ChatInputBar;
 }(_react.Component);
 
-var _ref2 = _jsx('div', {
-    className: 'flex-parent'
-}, void 0, _jsx('div', {
-    className: 'flex-container-horz flex-grow'
-}, void 0, _jsx('div', {
-    id: 'side-area',
-    className: 'col-md-4 flex-grow-2'
-}, void 0, 'Side'), _jsx('div', {
-    id: 'main-area',
-    className: 'col-md-9 flex-grow-3'
-}, void 0, 'MAIN')), _jsx(ChatInputBar, {}));
+var _ref2 = _jsx("div", {
+    className: "flex-parent"
+}, void 0, _jsx("div", {
+    className: "flex-container-horz flex-grow"
+}, void 0, _jsx("div", {
+    id: "side-area",
+    className: "col-md-4 flex-grow-2"
+}, void 0, "Side"), _jsx("div", {
+    id: "main-area",
+    className: "col-md-9 flex-grow-3"
+}, void 0, "MAIN")), _jsx(ChatInputBar, {}));
 
 /***/ }),
 /* 34 */
@@ -32995,6 +33023,64 @@ Backoff.prototype.setJitter = function(jitter){
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 72 */,
+/* 73 */,
+/* 74 */,
+/* 75 */,
+/* 76 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var EventEmitter = __webpack_require__(77).EventEmitter;
+
+var ChatStore = function (_EventEmitter) {
+    _inherits(ChatStore, _EventEmitter);
+
+    function ChatStore() {
+        _classCallCheck(this, ChatStore);
+
+        console.log("ChatStore.constructor");
+
+        var _this = _possibleConstructorReturn(this, (ChatStore.__proto__ || Object.getPrototypeOf(ChatStore)).call(this));
+
+        _this.state = {
+            messages: []
+        };
+
+        return _this;
+    }
+
+    _createClass(ChatStore, [{
+        key: "addMessage",
+        value: function addMessage(msg) {
+            console.log("ChatStore.addMessage");
+            this.state.messages.push(msg);
+            this.emit("new-message", msg);
+        }
+    }]);
+
+    return ChatStore;
+}(EventEmitter);
+
+module.exports = new ChatStore();
+
+/***/ }),
+/* 77 */
+/***/ (function(module, exports) {
+
+module.exports = require("events");
 
 /***/ })
 /******/ ]);

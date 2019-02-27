@@ -1,11 +1,15 @@
-const io = require('socket.io-client');
+/*const io = require('socket.io-client');
 
 let socket = io('http://localhost:3000');
 
-socket.emit("chat-message", "Hello There");
+socket.emit("chat-message", "Hello There");*/
 
 import React, {Component} from "react";
 import ReactDOM from "react-dom";
+
+const io = require('socket.io-client');
+
+let ChatStore = require("./chatStore");
 
 let root = document.getElementById("root");
 
@@ -19,18 +23,29 @@ document.addEventListener("DOMContentLoaded", e => {
 class App extends Component {
     constructor(props){
         super(props);
-        this.state = {
-            url : "http://localhost:3000"
-        }
+        this.state = { url : "http://localhost:3000"}
     }
 
     componentWillMount(){
+        console.log("componentWillMount");
         this.initSocket();
+
+        ChatStore.on("new-message", (msg) => {
+            this.io.emit("chat-message", msg);
+            console.log("New Message " + msg);
+        });
+
+        this.io.on("chat-message", (msg) => {
+            console.log("Message from another user ",msg);
+        })
         
     }
 
     initSocket() {
+        console.log("initSocket");
         this.io = io(this.state.url);
+        console.log(this.io);
+
     }
 
     render(){
@@ -65,14 +80,26 @@ class ChatContainer extends Component {
 class ChatInputBar extends Component {
     constructor(props){
         super(props);
+        this.state = {
+            message : ""
+        }
+
+        console.log("ChatInputBar.constructor");
+
     }
 
     sendMessage(e){
+        console.log("ChatInputBar.sendMessage");
+
         e.preventDefault();
-        console.log("Message: " + this.msgInput.value);
+        this.setState({ message: this.msgInput.value });
+        ChatStore.addMessage(this.msgInput.value);
+        //console.log("Message: " + this.msgInput.value);
     }
 
     render(){
+        console.log("ChatInputBar.render");
+
         return (
             <div id="chat-bar-container">
                 <form id="chat-form">
