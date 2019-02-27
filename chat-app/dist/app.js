@@ -4961,6 +4961,16 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 //const EventEmitter = require("events").EventEmitter;
 
+var _ref2 = _jsx("div", {
+    className: "flex-container-horz flex-grow"
+}, void 0, _jsx("div", {
+    id: "side-area",
+    className: "col-md-4 flex-grow-2"
+}, void 0, "Side"), _jsx("div", {
+    id: "main-area",
+    className: "col-md-9 flex-grow-3"
+}, void 0, "MAIN"));
+
 var App = function (_Component) {
     _inherits(App, _Component);
 
@@ -4969,7 +4979,12 @@ var App = function (_Component) {
 
         var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
-        _this.state = { url: "http://localhost:3000" };
+        _this.state = {
+            url: "http://localhost:3000",
+            showLoginBox: true
+        };
+
+        _this.hideLoginBox = _this.hideLoginBox.bind(_this);
         return _this;
     }
 
@@ -4991,6 +5006,11 @@ var App = function (_Component) {
             });
         }
     }, {
+        key: "hideLoginBox",
+        value: function hideLoginBox() {
+            this.setState({ showLoginBox: false });
+        }
+    }, {
         key: "initSocket",
         value: function initSocket() {
             console.log("initSocket");
@@ -5001,7 +5021,11 @@ var App = function (_Component) {
         key: "render",
         value: function render() {
 
-            return _ref2;
+            return _jsx("div", {
+                className: "flex-parent"
+            }, void 0, this.state.showLoginBox && _jsx(LoginBox, {
+                hideLoginBox: this.hideLoginBox
+            }), _ref2, _ref3);
         }
     }]);
 
@@ -5079,17 +5103,67 @@ var ChatInputBar = function (_Component3) {
     return ChatInputBar;
 }(_react.Component);
 
-var _ref2 = _jsx("div", {
-    className: "flex-parent"
-}, void 0, _jsx("div", {
-    className: "flex-container-horz flex-grow"
-}, void 0, _jsx("div", {
-    id: "side-area",
-    className: "col-md-4 flex-grow-2"
-}, void 0, "Side"), _jsx("div", {
-    id: "main-area",
-    className: "col-md-9 flex-grow-3"
-}, void 0, "MAIN")), _jsx(ChatInputBar, {}));
+var _ref3 = _jsx(ChatInputBar, {});
+
+var _ref4 = _jsx("h3", {}, void 0, "Enter your Username");
+
+var LoginBox = function (_Component4) {
+    _inherits(LoginBox, _Component4);
+
+    function LoginBox(props) {
+        _classCallCheck(this, LoginBox);
+
+        var _this6 = _possibleConstructorReturn(this, (LoginBox.__proto__ || Object.getPrototypeOf(LoginBox)).call(this, props));
+
+        _this6.state = {
+            username: ''
+        };
+
+        _this6.handleUsernameChange = _this6.handleUsernameChange.bind(_this6);
+        _this6.handleLoginSubmit = _this6.handleLoginSubmit.bind(_this6);
+        //this.handleUsernameChange = this.handleUsernameChange.bind(this);
+        return _this6;
+    }
+
+    _createClass(LoginBox, [{
+        key: "handleUsernameChange",
+        value: function handleUsernameChange() {}
+    }, {
+        key: "handleLoginSubmit",
+        value: function handleLoginSubmit() {
+            if (this.userNameInput.value === '') {
+                alert("Please enter your username!");
+                return;
+            }
+
+            this.setState({ username: this.userNameInput.value });
+            console.log("Your username is " + this.userNameInput.value);
+
+            //Hide login box
+            this.props.hideLoginBox();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this7 = this;
+
+            return _jsx("div", {
+                className: "login-box"
+            }, void 0, _jsx("div", {
+                className: "login-box-container"
+            }, void 0, _ref4, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control", onChange: this.handleUsernameChange,
+                ref: function ref(usernameInput) {
+                    return _this7.userNameInput = usernameInput;
+                }, placeholder: "Username" }), _jsx("button", {
+                type: "button",
+                className: "btn btn-success btn-block",
+                onClick: this.handleLoginSubmit
+            }, void 0, "Login")));
+        }
+    }]);
+
+    return LoginBox;
+}(_react.Component);
 
 /***/ }),
 /* 34 */

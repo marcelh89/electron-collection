@@ -23,7 +23,12 @@ document.addEventListener("DOMContentLoaded", e => {
 class App extends Component {
     constructor(props){
         super(props);
-        this.state = { url : "http://localhost:3000"}
+        this.state = {
+            url : "http://localhost:3000",
+            showLoginBox: true
+        };
+
+        this.hideLoginBox = this.hideLoginBox.bind(this);
     }
 
     componentWillMount(){
@@ -41,6 +46,10 @@ class App extends Component {
         
     }
 
+    hideLoginBox(){
+        this.setState({showLoginBox: false})
+    }
+
     initSocket() {
         console.log("initSocket");
         this.io = io(this.state.url);
@@ -52,6 +61,7 @@ class App extends Component {
 
         return (
             <div className="flex-parent">
+                {this.state.showLoginBox && <LoginBox hideLoginBox={this.hideLoginBox}/>}
                 <div className="flex-container-horz flex-grow">
                     <div id="side-area" className="col-md-4 flex-grow-2">
                         Side
@@ -60,7 +70,7 @@ class App extends Component {
                         MAIN
                     </div>
                 </div>
-                <ChatInputBar />
+                <ChatInputBar  />
             </div>
         );
 
@@ -111,3 +121,49 @@ class ChatInputBar extends Component {
     }
 }
 
+class LoginBox extends Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            username: ''
+        }
+
+        this.handleUsernameChange = this.handleUsernameChange.bind(this);
+        this.handleLoginSubmit = this.handleLoginSubmit.bind(this);
+        //this.handleUsernameChange = this.handleUsernameChange.bind(this);
+    }
+
+    handleUsernameChange(){
+
+    }
+
+    handleLoginSubmit(){
+        if(this.userNameInput.value === ''){
+            alert("Please enter your username!");
+            return;
+        }
+
+        this.setState({username: this.userNameInput.value});
+        console.log("Your username is " + this.userNameInput.value);
+
+        //Hide login box
+        this.props.hideLoginBox();
+    }
+
+    render(){
+        return (
+            <div className="login-box">
+                <div className="login-box-container">
+                  <h3>Enter your Username</h3>
+                  <input name="username" type="text" className="form-control" onChange={this.handleUsernameChange}
+                  ref={usernameInput => (this.userNameInput = usernameInput)} placeholder="Username" />
+                  {/*<input name="password" type="password" className="form-control" onChange={this.handleUsernameChange}
+                   ref={usernameInput => (this.userNameInput = usernameInput)} />*/}
+                  <button type="button" className="btn btn-success btn-block" onClick={this.handleLoginSubmit}>
+                   Login
+                  </button>
+                </div>
+            </div>
+        );
+    }
+}
