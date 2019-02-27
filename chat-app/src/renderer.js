@@ -1,10 +1,10 @@
-/*const io = require('socket.io-client');
+const io = require('socket.io-client');
 
 let socket = io('http://localhost:3000');
 
-socket.emit("newMessage", "Hello There");*/
+socket.emit("chat-message", "Hello There");
 
-import {Component} from "react";
+import React, {Component} from "react";
 import ReactDOM from "react-dom";
 
 let root = document.getElementById("root");
@@ -14,9 +14,23 @@ document.addEventListener("DOMContentLoaded", e => {
 
 });
 
+//const EventEmitter = require("events").EventEmitter;
+
 class App extends Component {
     constructor(props){
         super(props);
+        this.state = {
+            url : "http://localhost:3000"
+        }
+    }
+
+    componentWillMount(){
+        this.initSocket();
+        
+    }
+
+    initSocket() {
+        this.io = io(this.state.url);
     }
 
     render(){
@@ -53,12 +67,17 @@ class ChatInputBar extends Component {
         super(props);
     }
 
+    sendMessage(e){
+        e.preventDefault();
+        console.log("Message: " + this.msgInput.value);
+    }
+
     render(){
         return (
             <div id="chat-bar-container">
                 <form id="chat-form">
-                    <input id="chat-input" type="text" placeholder="Type your Message..."/>
-                    <button type="submit" id="chat-submit" className="btn btn-success">Send Message</button>
+                    <input key={0} id="chat-input" type="text" placeholder="Type your Message..." ref={(input) => {this.msgInput = input}}/>
+                    <button type="submit" id="chat-submit" className="btn btn-success" onClick={this.sendMessage.bind(this)}>Send Message</button>
                 </form>
             </div>
         )

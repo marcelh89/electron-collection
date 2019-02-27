@@ -7,8 +7,9 @@ const io = require('socket.io')(http);
 io.on('connection', (socket) => {
     console.log('New client is connected!');
 
-    socket.on("newMessage", (msg) => {
+    socket.on("chat-message", (msg) => {
         console.log("New Message: ", msg);
+        socket.emit("chat-message-new: ", msg);
     });
 
 });
