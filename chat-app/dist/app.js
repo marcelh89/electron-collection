@@ -4939,6 +4939,8 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -4961,16 +4963,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 //const EventEmitter = require("events").EventEmitter;
 
-var _ref2 = _jsx("div", {
-    className: "flex-container-horz flex-grow"
-}, void 0, _jsx("div", {
-    id: "side-area",
-    className: "col-md-4 flex-grow-2"
-}, void 0, "Side"), _jsx("div", {
-    id: "main-area",
-    className: "col-md-9 flex-grow-3"
-}, void 0, "MAIN"));
-
 var App = function (_Component) {
     _inherits(App, _Component);
 
@@ -4981,7 +4973,9 @@ var App = function (_Component) {
 
         _this.state = {
             url: "http://localhost:3000",
-            showLoginBox: true
+            showLoginBox: true,
+            messages: [],
+            username: "NO USER"
         };
 
         _this.hideLoginBox = _this.hideLoginBox.bind(_this);
@@ -4996,13 +4990,28 @@ var App = function (_Component) {
             console.log("componentWillMount");
             this.initSocket();
 
-            ChatStore.on("new-message", function (msg) {
-                _this2.io.emit("chat-message", msg);
-                console.log("New Message " + msg);
+            ChatStore.on("initialized", function (username) {
+                _this2.setState({ username: username });
             });
 
-            this.io.on("chat-message", function (msg) {
-                console.log("Message from another user ", msg);
+            ChatStore.on("new-message", function (msg) {
+                //Store the message
+                var newMsg = { msg: msg, username: _this2.state.username };
+                _this2.setState(function (prevState) {
+                    return { messages: [].concat(_toConsumableArray(prevState.messages), [newMsg]) };
+                });
+                _this2.io.emit("chat-message", newMsg);
+                console.log("New Message " + JSON.stringify(newMsg));
+            });
+
+            //Message coming from other users
+            this.io.on("chat-message", function (newMsg) {
+                _this2.setState(function (prevState) {
+                    return {
+                        messages: [].concat(_toConsumableArray(prevState.messages), [newMsg])
+                    };
+                });
+                console.log("Message from another user ", newMsg);
             });
         }
     }, {
@@ -5034,6 +5043,11 @@ var App = function (_Component) {
 
 var _ref = _jsx(App, {});
 
+var _ref4 = _jsx("div", {
+    id: "main-area",
+    className: "col-md-9 flex-grow-3"
+}, void 0, "MAIN");
+
 var ChatContainer = function (_Component2) {
     _inherits(ChatContainer, _Component2);
 
@@ -5045,11 +5059,20 @@ var ChatContainer = function (_Component2) {
 
     _createClass(ChatContainer, [{
         key: "render",
-        value: function render() {}
+        value: function render() {
+            return _ref4;
+        }
     }]);
 
     return ChatContainer;
 }(_react.Component);
+
+var _ref2 = _jsx("div", {
+    className: "flex-container-horz flex-grow"
+}, void 0, _jsx("div", {
+    id: "side-area",
+    className: "col-md-4 flex-grow-2"
+}, void 0, "Side"), _jsx(ChatContainer, {}));
 
 var ChatInputBar = function (_Component3) {
     _inherits(ChatInputBar, _Component3);
@@ -5105,7 +5128,7 @@ var ChatInputBar = function (_Component3) {
 
 var _ref3 = _jsx(ChatInputBar, {});
 
-var _ref4 = _jsx("h3", {}, void 0, "Enter your Username");
+var _ref5 = _jsx("h3", {}, void 0, "Enter your Username");
 
 var LoginBox = function (_Component4) {
     _inherits(LoginBox, _Component4);
@@ -5141,6 +5164,8 @@ var LoginBox = function (_Component4) {
 
             //Hide login box
             this.props.hideLoginBox();
+
+            ChatStore.init(this.userNameInput.value);
         }
     }, {
         key: "render",
@@ -5151,7 +5176,7 @@ var LoginBox = function (_Component4) {
                 className: "login-box"
             }, void 0, _jsx("div", {
                 className: "login-box-container"
-            }, void 0, _ref4, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control", onChange: this.handleUsernameChange,
+            }, void 0, _ref5, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control", onChange: this.handleUsernameChange,
                 ref: function ref(usernameInput) {
                     return _this7.userNameInput = usernameInput;
                 }, placeholder: "Username" }), _jsx("button", {
@@ -33130,13 +33155,25 @@ var ChatStore = function (_EventEmitter) {
         var _this = _possibleConstructorReturn(this, (ChatStore.__proto__ || Object.getPrototypeOf(ChatStore)).call(this));
 
         _this.state = {
-            messages: []
+            messages: [],
+            username: ""
         };
 
         return _this;
     }
 
     _createClass(ChatStore, [{
+        key: "init",
+        value: function init(username) {
+            this.emit("initialized", username);
+            this.state.username = username;
+        }
+    }, {
+        key: "getUsername",
+        value: function getUsername() {
+            return this.state.username;
+        }
+    }, {
         key: "addMessage",
         value: function addMessage(msg) {
             console.log("ChatStore.addMessage");

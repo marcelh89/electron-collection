@@ -25,7 +25,9 @@ class App extends Component {
         super(props);
         this.state = {
             url : "http://localhost:3000",
-            showLoginBox: true
+            showLoginBox: true,
+            messages: [],
+            username: "NO USER"
         };
 
         this.hideLoginBox = this.hideLoginBox.bind(this);
@@ -35,13 +37,25 @@ class App extends Component {
         console.log("componentWillMount");
         this.initSocket();
 
-        ChatStore.on("new-message", (msg) => {
-            this.io.emit("chat-message", msg);
-            console.log("New Message " + msg);
+        ChatStore.on("initialized", (username) => {
+            this.setState({username: username});
         });
 
-        this.io.on("chat-message", (msg) => {
-            console.log("Message from another user ",msg);
+        ChatStore.on("new-message", (msg) => {
+            //Store the message
+            let newMsg = {msg: msg, username: this.state.username };
+            this.setState((prevState) => ({messages: [...prevState.messages, newMsg]}));
+            this.io.emit("chat-message", newMsg);
+            console.log("New Message " + JSON.stringify(newMsg));
+        });
+
+
+        //Message coming from other users
+        this.io.on("chat-message", (newMsg) => {
+            this.setState(prevState => ({
+                messages: [...prevState.messages, newMsg]
+            }))
+            console.log("Message from another user ",newMsg);
         })
         
     }
@@ -66,9 +80,8 @@ class App extends Component {
                     <div id="side-area" className="col-md-4 flex-grow-2">
                         Side
                     </div>
-                    <div id="main-area" className="col-md-9 flex-grow-3">
-                        MAIN
-                    </div>
+                    <ChatContainer />
+
                 </div>
                 <ChatInputBar  />
             </div>
@@ -83,6 +96,11 @@ class ChatContainer extends Component {
     }
 
     render(){
+        return  (
+            <div id="main-area" className="col-md-9 flex-grow-3">
+                MAIN
+            </div>
+        )
 
     }
 }
@@ -148,6 +166,9 @@ class LoginBox extends Component {
 
         //Hide login box
         this.props.hideLoginBox();
+
+        ChatStore.init(this.userNameInput.value);
+
     }
 
     render(){
