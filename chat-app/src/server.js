@@ -3,11 +3,17 @@ const app = express();
 const port = 3000;
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
+let mongoose = require('mongoose');
 
 let BodyParser = require('body-parser');
 
 app.use(BodyParser.urlencoded({extended: true}))
 app.use(BodyParser.json());
+
+//connect and create 
+mongoose.connect('mongodb://localhost:27017/chat_users', {useNewUrlParser: true });
+
+let userModel = require("../api/models/userModel")
 
 let userRoutes = require('../api/routes/userRoutes');
 userRoutes.route(app);
