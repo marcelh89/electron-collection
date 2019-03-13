@@ -179,10 +179,13 @@ class LoginBox extends Component {
         if(this.userNameInput.value === ''){
             alert("Please enter your username!");
             return;
+        } else if(this.userPass.value = ''){
+            alert("Please enter your password!")
         }
 
-        this.setState({username: this.userNameInput.value});
-        console.log("Your username is " + this.userNameInput.value);
+        this.setState({username: this.userNameInput.value, password: this.userPass.value});
+
+        //TODO check if user credentials are okay
 
         //Hide login box
         this.props.hideLoginBox();
@@ -197,7 +200,9 @@ class LoginBox extends Component {
                 <div className="login-box-container">
                   <h3>Enter your Username</h3>
                   <input name="username" type="text" className="form-control" onChange={this.handleUsernameChange}
-                  ref={usernameInput => (this.userNameInput = usernameInput)} placeholder="Username" />
+                  ref={input => (this.userNameInput = input)} placeholder="Username or Email" key={0}/>
+                  <input name="password" type="password" className="form-control" onChange={this.handleUsernameChange}
+                  ref={input => (this.userPass = input)} placeholder="Password" key={0} />
                   {/*<input name="password" type="password" className="form-control" onChange={this.handleUsernameChange}
                    ref={usernameInput => (this.userNameInput = usernameInput)} />*/}
                   <button type="button" className="btn btn-success btn-block" onClick={this.handleLoginSubmit}>

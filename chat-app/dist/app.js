@@ -5182,10 +5182,13 @@ var LoginBox = function (_Component4) {
             if (this.userNameInput.value === '') {
                 alert("Please enter your username!");
                 return;
+            } else if (this.userPass.value = '') {
+                alert("Please enter your password!");
             }
 
-            this.setState({ username: this.userNameInput.value });
-            console.log("Your username is " + this.userNameInput.value);
+            this.setState({ username: this.userNameInput.value, password: this.userPass.value });
+
+            //TODO check if user credentials are okay
 
             //Hide login box
             this.props.hideLoginBox();
@@ -5202,9 +5205,12 @@ var LoginBox = function (_Component4) {
             }, void 0, _jsx("div", {
                 className: "login-box-container"
             }, void 0, _ref4, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control", onChange: this.handleUsernameChange,
-                ref: function ref(usernameInput) {
-                    return _this8.userNameInput = usernameInput;
-                }, placeholder: "Username" }), _jsx("button", {
+                ref: function ref(input) {
+                    return _this8.userNameInput = input;
+                }, placeholder: "Username or Email", key: 0 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control", onChange: this.handleUsernameChange,
+                ref: function ref(input) {
+                    return _this8.userPass = input;
+                }, placeholder: "Password", key: 0 }), _jsx("button", {
                 type: "button",
                 className: "btn btn-success btn-block",
                 onClick: this.handleLoginSubmit
