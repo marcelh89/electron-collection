@@ -6,6 +6,7 @@ socket.emit("chat-message", "Hello There");*/
 
 import React, {Component} from "react";
 import ReactDOM from "react-dom";
+import axios from "axios";
 
 const io = require('socket.io-client');
 
@@ -163,7 +164,8 @@ class LoginBox extends Component {
     constructor(props){
         super(props);
         this.state = {
-            username: ''
+            username: "",
+            password: "",
         }
 
         this.handleUsernameChange = this.handleUsernameChange.bind(this);
@@ -171,26 +173,45 @@ class LoginBox extends Component {
         //this.handleUsernameChange = this.handleUsernameChange.bind(this);
     }
 
-    handleUsernameChange(){
+    handleUsernameChange(){}
+    handlePasswordChange(){}
 
-    }
 
     handleLoginSubmit(){
-        if(this.userNameInput.value === ''){
+
+        const username = this.userNameInput.value;
+        const password = this.passInput.value;
+
+        if(username === ''){
             alert("Please enter your username!");
             return;
-        } else if(this.userPass.value = ''){
+        } else if(password === ''){
             alert("Please enter your password!")
         }
 
-        this.setState({username: this.userNameInput.value, password: this.userPass.value});
+        axios.post("http://localhost:3000/user/login", {
+            username,
+            password
+        }).then (res => {
+            if(res.status == 200 && res.data.status == "success"){
+                this.setState({
+                    username,
+                    password
+                });
 
-        //TODO check if user credentials are okay
+                ChatStore.init(username);
 
-        //Hide login box
-        this.props.hideLoginBox();
+                 //Hide login box
+                this.props.hideLoginBox();
+               
 
-        ChatStore.init(this.userNameInput.value);
+            }else if (res.data.status == "error"){
+                alert(res.data.message);
+            }
+        }).catch(err => {
+            console.log("Axios error: ", err);
+            alert("Error connecting to the server");
+        })
 
     }
 
@@ -201,10 +222,8 @@ class LoginBox extends Component {
                   <h3>Enter your Username</h3>
                   <input name="username" type="text" className="form-control" onChange={this.handleUsernameChange}
                   ref={input => (this.userNameInput = input)} placeholder="Username or Email" key={0}/>
-                  <input name="password" type="password" className="form-control" onChange={this.handleUsernameChange}
-                  ref={input => (this.userPass = input)} placeholder="Password" key={0} />
-                  {/*<input name="password" type="password" className="form-control" onChange={this.handleUsernameChange}
-                   ref={usernameInput => (this.userNameInput = usernameInput)} />*/}
+                  <input name="password" type="password" className="form-control" onChange={this.handlePasswordChange}
+                  ref={passInput  => (this.passInput  = passInput )} placeholder="Password" key={1} />
                   <button type="button" className="btn btn-success btn-block" onClick={this.handleLoginSubmit}>
                    Login
                   </button>
