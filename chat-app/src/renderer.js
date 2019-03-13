@@ -26,12 +26,15 @@ class App extends Component {
         super(props);
         this.state = {
             url : "http://localhost:3000",
-            showLoginBox: true,
             messages: [],
-            username: "NO USER"
+            username: "NO USER",
+            showLoginBox: true,
+            showRegisterBox: false
         };
 
         this.hideLoginBox = this.hideLoginBox.bind(this);
+        this.showRegisterBox = this.showRegisterBox.bind(this);
+        this.showLoginBox = this.showLoginBox.bind(this);
     }
 
     componentWillMount(){
@@ -72,11 +75,23 @@ class App extends Component {
 
     }
 
+    showRegisterBox(){
+        console.log("triggering showRegisterBox");
+        this.setState({showLoginBox: false, showRegisterBox: true});
+    }
+
+    showLoginBox(){
+        console.log("triggering showLoginBox");
+        this.setState({showLoginBox: true, showRegisterBox: false});
+    }
+
     render(){
 
         return (
             <div className="flex-parent">
-                {this.state.showLoginBox && <LoginBox hideLoginBox={this.hideLoginBox}/>}
+                {this.state.showLoginBox && (<LoginBox showRegisterBox={this.showRegisterBox}/>)}
+                {this.state.showRegisterBox && (<RegisterBox showLoginBox={this.showLoginBox}/>)}
+                
                 <div className="flex-container-horz flex-grow">
                     <div id="side-area" className="col-md-4 flex-grow-2">
                         Side
@@ -160,6 +175,85 @@ class ChatInputBar extends Component {
     }
 }
 
+class RegisterBox extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            username : '',
+            password : '',
+            fullName: '',
+            email: ''
+
+        }
+
+        this.submitHandler = this.submitHandler.bind(this);
+    }
+
+    submitHandler(e){
+        e.preventDefault();
+
+        if(this.fullNameInput.value === ''){
+            alert('Please enter your full name');
+            return false;
+        }else if (this.userNameInput.value === ''){
+            alert('Please enter your username');
+            return false;
+        }else if (this.emailInput.value === ''){
+            alert('Please enter your email');
+            return false;
+        }else if (this.passInput.value === ''){
+            alert('Please enter your password');
+            return false;
+        }
+
+        axios.post("http://localhost:3000/user/register", {
+            fullName: this.fullNameInput.value,
+            username: this.userNameInput.value,
+            email: this.emailInput.value,
+            password: this.passInput.value
+        }).then(res =>{
+
+            if(res.status == 200 && res.data.status == "success"){
+                alert('You have successfully registered to the server');
+                //show login box
+                this.props.showLoginBox();
+            }else if (res.data.status = "error"){
+                alert(res.data.message);
+                console.log(res.data.message);
+            }
+
+
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
+    render(){
+
+        return (
+
+        <div className="login-box">
+                <div className="login-box-container">
+                  <h3>Register on the Chat Application</h3>
+                  <input name="fullname" type="text" className="form-control"
+                  ref={input => (this.fullNameInput = input)} placeholder="Enter Full Name" key={0}/>
+                  <input name="username" type="text" className="form-control"
+                  ref={input => (this.userNameInput = input)} placeholder="Enter your Username" key={1}/>
+                  <input name="email" type="text" className="form-control"
+                  ref={input => (this.emailInput = input)} placeholder="Enter your Email" key={2}/>
+                  <input name="password" type="password" className="form-control"
+                  ref={passInput  => (this.passInput  = passInput )} placeholder="Password" key={3} />
+                  <button type="button" className="btn btn-success btn-block" onClick={this.submitHandler}>
+                   Register
+                  </button>
+                  <a href="#" onClick={() => {this.props.showLoginBox()}} >Back to Login!</a>
+                </div>
+        </div>
+        )
+
+    }
+}
+
 class LoginBox extends Component {
     constructor(props){
         super(props);
@@ -168,14 +262,10 @@ class LoginBox extends Component {
             password: "",
         }
 
-        this.handleUsernameChange = this.handleUsernameChange.bind(this);
+        console.log("Props from LoginBox ", props)
+
         this.handleLoginSubmit = this.handleLoginSubmit.bind(this);
-        //this.handleUsernameChange = this.handleUsernameChange.bind(this);
     }
-
-    handleUsernameChange(){}
-    handlePasswordChange(){}
-
 
     handleLoginSubmit(){
 
@@ -219,14 +309,15 @@ class LoginBox extends Component {
         return (
             <div className="login-box">
                 <div className="login-box-container">
-                  <h3>Enter your Username</h3>
-                  <input name="username" type="text" className="form-control" onChange={this.handleUsernameChange}
+                  <h3>Login to the Chat Application</h3>
+                  <input name="username" type="text" className="form-control" 
                   ref={input => (this.userNameInput = input)} placeholder="Username or Email" key={0}/>
-                  <input name="password" type="password" className="form-control" onChange={this.handlePasswordChange}
+                  <input name="password" type="password" className="form-control"
                   ref={passInput  => (this.passInput  = passInput )} placeholder="Password" key={1} />
                   <button type="button" className="btn btn-success btn-block" onClick={this.handleLoginSubmit}>
                    Login
                   </button>
+                  <a href="#" onClick={() => {this.props.showRegisterBox()}} >You don't have an Account, Please register!</a>
                 </div>
             </div>
         );

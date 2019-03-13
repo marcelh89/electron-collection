@@ -6324,12 +6324,15 @@ var App = function (_Component) {
 
         _this.state = {
             url: "http://localhost:3000",
-            showLoginBox: true,
             messages: [],
-            username: "NO USER"
+            username: "NO USER",
+            showLoginBox: true,
+            showRegisterBox: false
         };
 
         _this.hideLoginBox = _this.hideLoginBox.bind(_this);
+        _this.showRegisterBox = _this.showRegisterBox.bind(_this);
+        _this.showLoginBox = _this.showLoginBox.bind(_this);
         return _this;
     }
 
@@ -6378,13 +6381,27 @@ var App = function (_Component) {
             console.log(this.io);
         }
     }, {
+        key: "showRegisterBox",
+        value: function showRegisterBox() {
+            console.log("triggering showRegisterBox");
+            this.setState({ showLoginBox: false, showRegisterBox: true });
+        }
+    }, {
+        key: "showLoginBox",
+        value: function showLoginBox() {
+            console.log("triggering showLoginBox");
+            this.setState({ showLoginBox: true, showRegisterBox: false });
+        }
+    }, {
         key: "render",
         value: function render() {
 
             return _jsx("div", {
                 className: "flex-parent"
             }, void 0, this.state.showLoginBox && _jsx(LoginBox, {
-                hideLoginBox: this.hideLoginBox
+                showRegisterBox: this.showRegisterBox
+            }), this.state.showRegisterBox && _jsx(RegisterBox, {
+                showLoginBox: this.showLoginBox
             }), _jsx("div", {
                 className: "flex-container-horz flex-grow"
             }, void 0, _ref2, _jsx(ChatContainer, {
@@ -6499,7 +6516,106 @@ var ChatInputBar = function (_Component3) {
 
 var _ref3 = _jsx(ChatInputBar, {});
 
-var _ref4 = _jsx("h3", {}, void 0, "Enter your Username");
+var _ref4 = _jsx("h3", {}, void 0, "Register on the Chat Application");
+
+var RegisterBox = function (_React$Component) {
+    _inherits(RegisterBox, _React$Component);
+
+    function RegisterBox(props) {
+        _classCallCheck(this, RegisterBox);
+
+        var _this7 = _possibleConstructorReturn(this, (RegisterBox.__proto__ || Object.getPrototypeOf(RegisterBox)).call(this, props));
+
+        _this7.state = {
+            username: '',
+            password: '',
+            fullName: '',
+            email: ''
+
+        };
+
+        _this7.submitHandler = _this7.submitHandler.bind(_this7);
+        return _this7;
+    }
+
+    _createClass(RegisterBox, [{
+        key: "submitHandler",
+        value: function submitHandler(e) {
+            var _this8 = this;
+
+            e.preventDefault();
+
+            if (this.fullNameInput.value === '') {
+                alert('Please enter your full name');
+                return false;
+            } else if (this.userNameInput.value === '') {
+                alert('Please enter your username');
+                return false;
+            } else if (this.emailInput.value === '') {
+                alert('Please enter your email');
+                return false;
+            } else if (this.passInput.value === '') {
+                alert('Please enter your password');
+                return false;
+            }
+
+            _axios2.default.post("http://localhost:3000/user/register", {
+                fullName: this.fullNameInput.value,
+                username: this.userNameInput.value,
+                email: this.emailInput.value,
+                password: this.passInput.value
+            }).then(function (res) {
+
+                if (res.status == 200 && res.data.status == "success") {
+                    alert('You have successfully registered to the server');
+                    //show login box
+                    _this8.props.showLoginBox();
+                } else if (res.data.status = "error") {
+                    alert(res.data.message);
+                    console.log(res.data.message);
+                }
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this9 = this;
+
+            return _jsx("div", {
+                className: "login-box"
+            }, void 0, _jsx("div", {
+                className: "login-box-container"
+            }, void 0, _ref4, _react2.default.createElement("input", { name: "fullname", type: "text", className: "form-control",
+                ref: function ref(input) {
+                    return _this9.fullNameInput = input;
+                }, placeholder: "Enter Full Name", key: 0 }), _react2.default.createElement("input", { name: "username", type: "text", className: "form-control",
+                ref: function ref(input) {
+                    return _this9.userNameInput = input;
+                }, placeholder: "Enter your Username", key: 1 }), _react2.default.createElement("input", { name: "email", type: "text", className: "form-control",
+                ref: function ref(input) {
+                    return _this9.emailInput = input;
+                }, placeholder: "Enter your Email", key: 2 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control",
+                ref: function ref(passInput) {
+                    return _this9.passInput = passInput;
+                }, placeholder: "Password", key: 3 }), _jsx("button", {
+                type: "button",
+                className: "btn btn-success btn-block",
+                onClick: this.submitHandler
+            }, void 0, "Register"), _jsx("a", {
+                href: "#",
+                onClick: function onClick() {
+                    _this9.props.showLoginBox();
+                }
+            }, void 0, "Back to Login!")));
+        }
+    }]);
+
+    return RegisterBox;
+}(_react2.default.Component);
+
+var _ref5 = _jsx("h3", {}, void 0, "Login to the Chat Application");
 
 var LoginBox = function (_Component4) {
     _inherits(LoginBox, _Component4);
@@ -6507,29 +6623,23 @@ var LoginBox = function (_Component4) {
     function LoginBox(props) {
         _classCallCheck(this, LoginBox);
 
-        var _this7 = _possibleConstructorReturn(this, (LoginBox.__proto__ || Object.getPrototypeOf(LoginBox)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (LoginBox.__proto__ || Object.getPrototypeOf(LoginBox)).call(this, props));
 
-        _this7.state = {
+        _this10.state = {
             username: "",
             password: ""
         };
 
-        _this7.handleUsernameChange = _this7.handleUsernameChange.bind(_this7);
-        _this7.handleLoginSubmit = _this7.handleLoginSubmit.bind(_this7);
-        //this.handleUsernameChange = this.handleUsernameChange.bind(this);
-        return _this7;
+        console.log("Props from LoginBox ", props);
+
+        _this10.handleLoginSubmit = _this10.handleLoginSubmit.bind(_this10);
+        return _this10;
     }
 
     _createClass(LoginBox, [{
-        key: "handleUsernameChange",
-        value: function handleUsernameChange() {}
-    }, {
-        key: "handlePasswordChange",
-        value: function handlePasswordChange() {}
-    }, {
         key: "handleLoginSubmit",
         value: function handleLoginSubmit() {
-            var _this8 = this;
+            var _this11 = this;
 
             var username = this.userNameInput.value;
             var password = this.passInput.value;
@@ -6546,7 +6656,7 @@ var LoginBox = function (_Component4) {
                 password: password
             }).then(function (res) {
                 if (res.status == 200 && res.data.status == "success") {
-                    _this8.setState({
+                    _this11.setState({
                         username: username,
                         password: password
                     });
@@ -6554,7 +6664,7 @@ var LoginBox = function (_Component4) {
                     ChatStore.init(username);
 
                     //Hide login box
-                    _this8.props.hideLoginBox();
+                    _this11.props.hideLoginBox();
                 } else if (res.data.status == "error") {
                     alert(res.data.message);
                 }
@@ -6566,23 +6676,28 @@ var LoginBox = function (_Component4) {
     }, {
         key: "render",
         value: function render() {
-            var _this9 = this;
+            var _this12 = this;
 
             return _jsx("div", {
                 className: "login-box"
             }, void 0, _jsx("div", {
                 className: "login-box-container"
-            }, void 0, _ref4, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control", onChange: this.handleUsernameChange,
+            }, void 0, _ref5, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control",
                 ref: function ref(input) {
-                    return _this9.userNameInput = input;
-                }, placeholder: "Username or Email", key: 0 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control", onChange: this.handlePasswordChange,
+                    return _this12.userNameInput = input;
+                }, placeholder: "Username or Email", key: 0 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control",
                 ref: function ref(passInput) {
-                    return _this9.passInput = passInput;
+                    return _this12.passInput = passInput;
                 }, placeholder: "Password", key: 1 }), _jsx("button", {
                 type: "button",
                 className: "btn btn-success btn-block",
                 onClick: this.handleLoginSubmit
-            }, void 0, "Login")));
+            }, void 0, "Login"), _jsx("a", {
+                href: "#",
+                onClick: function onClick() {
+                    _this12.props.showRegisterBox();
+                }
+            }, void 0, "You don't have an Account, Please register!")));
         }
     }]);
 
