@@ -4905,7 +4905,7 @@ module.exports = function(obj, fn){
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(32);
-module.exports = __webpack_require__(71);
+module.exports = __webpack_require__(73);
 
 
 /***/ }),
@@ -4953,7 +4953,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var io = __webpack_require__(42);
 
-var ChatStore = __webpack_require__(76);
+var ChatStore = __webpack_require__(71);
 
 var root = document.getElementById("root");
 
@@ -4962,6 +4962,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
 });
 
 //const EventEmitter = require("events").EventEmitter;
+
+var _ref2 = _jsx("div", {
+    id: "side-area",
+    className: "col-md-4 flex-grow-2"
+}, void 0, "Side");
 
 var App = function (_Component) {
     _inherits(App, _Component);
@@ -5034,7 +5039,12 @@ var App = function (_Component) {
                 className: "flex-parent"
             }, void 0, this.state.showLoginBox && _jsx(LoginBox, {
                 hideLoginBox: this.hideLoginBox
-            }), _ref2, _ref3);
+            }), _jsx("div", {
+                className: "flex-container-horz flex-grow"
+            }, void 0, _ref2, _jsx(ChatContainer, {
+                messages: this.state.messages,
+                username: this.state.username
+            })), _ref3);
         }
     }]);
 
@@ -5042,11 +5052,6 @@ var App = function (_Component) {
 }(_react.Component);
 
 var _ref = _jsx(App, {});
-
-var _ref4 = _jsx("div", {
-    id: "main-area",
-    className: "col-md-9 flex-grow-3"
-}, void 0, "MAIN");
 
 var ChatContainer = function (_Component2) {
     _inherits(ChatContainer, _Component2);
@@ -5060,19 +5065,37 @@ var ChatContainer = function (_Component2) {
     _createClass(ChatContainer, [{
         key: "render",
         value: function render() {
-            return _ref4;
+            var _this4 = this;
+
+            return _jsx("div", {
+                id: "main-area",
+                className: "col-md-9 flex-grow-3"
+            }, void 0, _jsx("ul", {
+                className: "messages-container-owner"
+            }, void 0, this.props.messages.map(function (msgObj, index) {
+                {
+                    if (msgObj.username == _this4.props.username) {
+                        return _jsx("li", {
+                            "class": "message"
+                        }, index, "You - " + msgObj.msg);
+                    }
+                }
+            })), _jsx("ul", {
+                className: "messages-container-sender"
+            }, void 0, this.props.messages.map(function (msgObj, index) {
+                {
+                    if (msgObj.username != _this4.props.username) {
+                        return _jsx("li", {
+                            "class": "message"
+                        }, index, msgObj.username + " - " + msgObj.msg);
+                    }
+                }
+            })));
         }
     }]);
 
     return ChatContainer;
 }(_react.Component);
-
-var _ref2 = _jsx("div", {
-    className: "flex-container-horz flex-grow"
-}, void 0, _jsx("div", {
-    id: "side-area",
-    className: "col-md-4 flex-grow-2"
-}, void 0, "Side"), _jsx(ChatContainer, {}));
 
 var ChatInputBar = function (_Component3) {
     _inherits(ChatInputBar, _Component3);
@@ -5080,15 +5103,15 @@ var ChatInputBar = function (_Component3) {
     function ChatInputBar(props) {
         _classCallCheck(this, ChatInputBar);
 
-        var _this4 = _possibleConstructorReturn(this, (ChatInputBar.__proto__ || Object.getPrototypeOf(ChatInputBar)).call(this, props));
+        var _this5 = _possibleConstructorReturn(this, (ChatInputBar.__proto__ || Object.getPrototypeOf(ChatInputBar)).call(this, props));
 
-        _this4.state = {
+        _this5.state = {
             message: ""
         };
 
         console.log("ChatInputBar.constructor");
 
-        return _this4;
+        return _this5;
     }
 
     _createClass(ChatInputBar, [{
@@ -5099,12 +5122,14 @@ var ChatInputBar = function (_Component3) {
             e.preventDefault();
             this.setState({ message: this.msgInput.value });
             ChatStore.addMessage(this.msgInput.value);
+            //Empty the input field
+            this.msgInput.value = '';
             //console.log("Message: " + this.msgInput.value);
         }
     }, {
         key: "render",
         value: function render() {
-            var _this5 = this;
+            var _this6 = this;
 
             console.log("ChatInputBar.render");
 
@@ -5113,7 +5138,7 @@ var ChatInputBar = function (_Component3) {
             }, void 0, _jsx("form", {
                 id: "chat-form"
             }, void 0, _react2.default.createElement("input", { key: 0, id: "chat-input", type: "text", placeholder: "Type your Message...", ref: function ref(input) {
-                    _this5.msgInput = input;
+                    _this6.msgInput = input;
                 } }), _jsx("button", {
                 type: "submit",
                 id: "chat-submit",
@@ -5128,7 +5153,7 @@ var ChatInputBar = function (_Component3) {
 
 var _ref3 = _jsx(ChatInputBar, {});
 
-var _ref5 = _jsx("h3", {}, void 0, "Enter your Username");
+var _ref4 = _jsx("h3", {}, void 0, "Enter your Username");
 
 var LoginBox = function (_Component4) {
     _inherits(LoginBox, _Component4);
@@ -5136,16 +5161,16 @@ var LoginBox = function (_Component4) {
     function LoginBox(props) {
         _classCallCheck(this, LoginBox);
 
-        var _this6 = _possibleConstructorReturn(this, (LoginBox.__proto__ || Object.getPrototypeOf(LoginBox)).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (LoginBox.__proto__ || Object.getPrototypeOf(LoginBox)).call(this, props));
 
-        _this6.state = {
+        _this7.state = {
             username: ''
         };
 
-        _this6.handleUsernameChange = _this6.handleUsernameChange.bind(_this6);
-        _this6.handleLoginSubmit = _this6.handleLoginSubmit.bind(_this6);
+        _this7.handleUsernameChange = _this7.handleUsernameChange.bind(_this7);
+        _this7.handleLoginSubmit = _this7.handleLoginSubmit.bind(_this7);
         //this.handleUsernameChange = this.handleUsernameChange.bind(this);
-        return _this6;
+        return _this7;
     }
 
     _createClass(LoginBox, [{
@@ -5170,15 +5195,15 @@ var LoginBox = function (_Component4) {
     }, {
         key: "render",
         value: function render() {
-            var _this7 = this;
+            var _this8 = this;
 
             return _jsx("div", {
                 className: "login-box"
             }, void 0, _jsx("div", {
                 className: "login-box-container"
-            }, void 0, _ref5, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control", onChange: this.handleUsernameChange,
+            }, void 0, _ref4, _react2.default.createElement("input", { name: "username", type: "text", className: "form-control", onChange: this.handleUsernameChange,
                 ref: function ref(usernameInput) {
-                    return _this7.userNameInput = usernameInput;
+                    return _this8.userNameInput = usernameInput;
                 }, placeholder: "Username" }), _jsx("button", {
                 type: "button",
                 className: "btn btn-success btn-block",
@@ -33119,16 +33144,6 @@ Backoff.prototype.setJitter = function(jitter){
 
 /***/ }),
 /* 71 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 72 */,
-/* 73 */,
-/* 74 */,
-/* 75 */,
-/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33142,7 +33157,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var EventEmitter = __webpack_require__(77).EventEmitter;
+var EventEmitter = __webpack_require__(72).EventEmitter;
 
 var ChatStore = function (_EventEmitter) {
     _inherits(ChatStore, _EventEmitter);
@@ -33188,10 +33203,16 @@ var ChatStore = function (_EventEmitter) {
 module.exports = new ChatStore();
 
 /***/ }),
-/* 77 */
+/* 72 */
 /***/ (function(module, exports) {
 
 module.exports = require("events");
+
+/***/ }),
+/* 73 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
 
 /***/ })
 /******/ ]);

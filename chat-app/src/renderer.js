@@ -80,7 +80,7 @@ class App extends Component {
                     <div id="side-area" className="col-md-4 flex-grow-2">
                         Side
                     </div>
-                    <ChatContainer />
+                    <ChatContainer messages={this.state.messages} username={this.state.username} />
 
                 </div>
                 <ChatInputBar  />
@@ -98,7 +98,25 @@ class ChatContainer extends Component {
     render(){
         return  (
             <div id="main-area" className="col-md-9 flex-grow-3">
-                MAIN
+                
+                <ul className="messages-container-owner">
+                    {this.props.messages.map((msgObj, index) => {
+                        {if(msgObj.username == this.props.username){
+                            return <li key={index} class="message">{"You - " +msgObj.msg}</li>
+                        }}
+                        
+                    })}
+                </ul>
+
+                <ul className="messages-container-sender">
+                    {this.props.messages.map((msgObj, index) => {
+                        {if(msgObj.username != this.props.username){
+                            return <li key={index} class="message">{msgObj.username + " - " +msgObj.msg}</li>
+                        }}
+                        
+                    })}
+                </ul>
+
             </div>
         )
 
@@ -122,6 +140,8 @@ class ChatInputBar extends Component {
         e.preventDefault();
         this.setState({ message: this.msgInput.value });
         ChatStore.addMessage(this.msgInput.value);
+        //Empty the input field
+        this.msgInput.value = '';
         //console.log("Message: " + this.msgInput.value);
     }
 
