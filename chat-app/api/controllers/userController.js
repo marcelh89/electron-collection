@@ -1,12 +1,21 @@
 //FAke data:
 users = [{ username: "user", password: "user"}]
 
+let User = require('../models/userModel');
+
 exports.loginController = (req, res) => {
 
-    if(req.body.username == users[0].username && req.body.password == users[0].password) {
-        res.json({status: "success"});
-    } else{
-        res.json({status: "error", message: "Username and/or Password are not correct"});
-    }
+    User.findOne({ email: req.body.email}, (err, user) => {
+        if(err){
+            return res.status(401).json({status: 'error', message: err})
+        }
+
+        if(user.hash_password == req.body.password){
+            return res.status(200).json({status: 'success', user: user})
+        }else{
+            res.status(401).json({status: 'error', message: 'User Credentials are wrong'})
+        }
+
+    })
 
 };
