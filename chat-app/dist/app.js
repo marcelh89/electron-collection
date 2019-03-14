@@ -60,18 +60,620 @@
 /******/ 	__webpack_require__.p = "/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 44);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
+__webpack_require__(1);
+module.exports = __webpack_require__(3);
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
 
-var bind = __webpack_require__(21);
-var isBuffer = __webpack_require__(57);
+//Main Renderer
+var renderer = __webpack_require__(2);
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _jsx = function () { var REACT_ELEMENT_TYPE = typeof Symbol === "function" && Symbol.for && Symbol.for("react.element") || 0xeac7; return function createRawReactElement(type, props, key, children) { var defaultProps = type && type.defaultProps; var childrenLength = arguments.length - 3; if (!props && childrenLength !== 0) { props = {}; } if (props && defaultProps) { for (var propName in defaultProps) { if (props[propName] === void 0) { props[propName] = defaultProps[propName]; } } } else if (!props) { props = defaultProps || {}; } if (childrenLength === 1) { props.children = children; } else if (childrenLength > 1) { var childArray = Array(childrenLength); for (var i = 0; i < childrenLength; i++) { childArray[i] = arguments[i + 3]; } props.children = childArray; } return { $$typeof: REACT_ELEMENT_TYPE, type: type, key: key === undefined ? null : '' + key, ref: null, props: props, _owner: null }; }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(26);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(54);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _axios = __webpack_require__(60);
+
+var _axios2 = _interopRequireDefault(_axios);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*const io = require('socket.io-client');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               let socket = io('http://localhost:3000');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               socket.emit("chat-message", "Hello There");*/
+
+var io = __webpack_require__(88);
+
+var ChatStore = __webpack_require__(115);
+
+var root = document.getElementById("root");
+
+document.addEventListener("DOMContentLoaded", function (e) {
+    _reactDom2.default.render(_ref, root);
+});
+
+//main proc remote
+var remote = __webpack_require__(117).remote;
+
+//session and cookies
+var defaultSession = remote.session.defaultSession;
+var cookies = defaultSession.cookies;
+
+var App = function (_Component) {
+    _inherits(App, _Component);
+
+    function App(props) {
+        _classCallCheck(this, App);
+
+        var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+
+        _this.state = {
+            url: "http://localhost:3000",
+            messages: [],
+            username: "NO USER",
+            showLoginBox: true,
+            showRegisterBox: false
+        };
+
+        _this.hideLoginBox = _this.hideLoginBox.bind(_this);
+        _this.showRegisterBox = _this.showRegisterBox.bind(_this);
+        _this.showLoginBox = _this.showLoginBox.bind(_this);
+        return _this;
+    }
+
+    _createClass(App, [{
+        key: "componentWillMount",
+        value: function componentWillMount() {
+            var _this2 = this;
+
+            //check for login cookies
+            var username = null,
+                token = null;
+            cookies.get({ name: 'JWToken' }, function (err, ck) {
+                if (err) console.log('Token Cookie error, ', err);
+                if (ck[0]) {
+                    console.log('TOKEN: ', ck[0].value);
+                    token = ck[0].value;
+                    cookies.get({ name: 'Username' }, function (err, ck1) {
+                        if (err) console.log('Username Cookie error, ', err);
+                        if (ck1[0]) {
+                            console.log('TOKEN: ', ck1[0].value);
+                            username = ck1[0].value;
+
+                            //set default axios auth headers
+                            if (username && token) {
+                                _axios2.default.defaults.headers.common['authentication'] = "JWT " + token;
+                                ChatStore.init(username);
+                                _this2.hideLoginBox();
+                            }
+                        }
+                    });
+                }
+            });
+
+            ChatStore.on("initialized", function (username) {
+                _this2.initSocket(username);
+                _this2.setState({ username: username });
+
+                ChatStore.on("new-message", function (msg) {
+                    //Store the message
+                    var newMsg = { msg: msg, username: _this2.state.username };
+                    _this2.setState(function (prevState) {
+                        return { messages: [].concat(_toConsumableArray(prevState.messages), [newMsg]) };
+                    });
+                    _this2.io.emit("chat-message", newMsg);
+                    console.log("New Message " + JSON.stringify(newMsg));
+                });
+
+                //Message coming from other users
+                _this2.io.on("chat-message", function (newMsg) {
+                    _this2.setState(function (prevState) {
+                        return {
+                            messages: [].concat(_toConsumableArray(prevState.messages), [newMsg])
+                        };
+                    });
+                    console.log("Message from another user ", newMsg);
+                });
+            });
+        }
+    }, {
+        key: "hideLoginBox",
+        value: function hideLoginBox() {
+            this.setState({ showLoginBox: false });
+        }
+    }, {
+        key: "initSocket",
+        value: function initSocket(username) {
+            this.io = io(this.state.url);
+            this.io.emit("connectedUser", username);
+        }
+    }, {
+        key: "showRegisterBox",
+        value: function showRegisterBox() {
+            console.log("triggering showRegisterBox");
+            this.setState({ showLoginBox: false, showRegisterBox: true });
+        }
+    }, {
+        key: "showLoginBox",
+        value: function showLoginBox() {
+            console.log("triggering showLoginBox");
+            this.setState({ showLoginBox: true, showRegisterBox: false });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+
+            return _jsx("div", {
+                className: "flex-parent"
+            }, void 0, this.state.showLoginBox && _jsx(LoginBox, {
+                hideLoginBox: this.hideLoginBox,
+                showRegisterBox: this.showRegisterBox
+            }), this.state.showRegisterBox && _jsx(RegisterBox, {
+                showLoginBox: this.showLoginBox
+            }), _jsx("div", {
+                className: "flex-container-horz flex-grow"
+            }, void 0, _ref2, _jsx(ChatContainer, {
+                messages: this.state.messages,
+                username: this.state.username
+            })), _ref3);
+        }
+    }]);
+
+    return App;
+}(_react.Component);
+
+var _ref = _jsx(App, {});
+
+var SideArea = function (_Component2) {
+    _inherits(SideArea, _Component2);
+
+    function SideArea(props) {
+        _classCallCheck(this, SideArea);
+
+        var _this3 = _possibleConstructorReturn(this, (SideArea.__proto__ || Object.getPrototypeOf(SideArea)).call(this, props));
+
+        _this3.state = { users: [] };
+        return _this3;
+    }
+
+    _createClass(SideArea, [{
+        key: "getConnectedUsers",
+        value: function getConnectedUsers() {
+            var _this4 = this;
+
+            _axios2.default.get("http://localhost:3000/user/connected").then(function (res) {
+                if (res.data.connectedUsers.length > 0) {
+                    _this4.setState({ users: res.data.connectedUsers });
+                    console.log(res.data.connectedUsers);
+                }
+            }).catch(function (err) {
+                if (err) {
+                    console.log("Connected Users Error: ", err);
+                }
+            });
+        }
+    }, {
+        key: "componentWillMount",
+        value: function componentWillMount() {
+            var _this5 = this;
+
+            setTimeout(function () {
+                setInterval(function () {
+                    _this5.getConnectedUsers();
+                }, 2000);
+            }, 2000);
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return _jsx("div", {
+                id: "side-area",
+                className: "col-md-3 flex-grow-2"
+            }, void 0, _jsx(ConnectedUsers, {
+                connected: this.state.users
+            }));
+        }
+    }]);
+
+    return SideArea;
+}(_react.Component);
+
+var _ref2 = _jsx(SideArea, {});
+
+var ChatContainer = function (_Component3) {
+    _inherits(ChatContainer, _Component3);
+
+    function ChatContainer(props) {
+        _classCallCheck(this, ChatContainer);
+
+        return _possibleConstructorReturn(this, (ChatContainer.__proto__ || Object.getPrototypeOf(ChatContainer)).call(this, props));
+    }
+
+    _createClass(ChatContainer, [{
+        key: "render",
+        value: function render() {
+            var _this7 = this;
+
+            return _jsx("div", {
+                id: "main-area",
+                className: "col-md-9 flex-grow-3"
+            }, void 0, _jsx("ul", {
+                className: "messages-container-owner"
+            }, void 0, this.props.messages.map(function (msgObj, index) {
+                {
+                    if (msgObj.username == _this7.props.username) {
+                        return _jsx("li", {
+                            "class": "message"
+                        }, index, "You - " + msgObj.msg);
+                    }
+                }
+            })), _jsx("ul", {
+                className: "messages-container-sender"
+            }, void 0, this.props.messages.map(function (msgObj, index) {
+                {
+                    if (msgObj.username != _this7.props.username) {
+                        return _jsx("li", {
+                            "class": "message"
+                        }, index, msgObj.username + " - " + msgObj.msg);
+                    }
+                }
+            })));
+        }
+    }]);
+
+    return ChatContainer;
+}(_react.Component);
+
+var ChatInputBar = function (_Component4) {
+    _inherits(ChatInputBar, _Component4);
+
+    function ChatInputBar(props) {
+        _classCallCheck(this, ChatInputBar);
+
+        var _this8 = _possibleConstructorReturn(this, (ChatInputBar.__proto__ || Object.getPrototypeOf(ChatInputBar)).call(this, props));
+
+        _this8.state = {
+            message: ""
+        };
+
+        console.log("ChatInputBar.constructor");
+
+        return _this8;
+    }
+
+    _createClass(ChatInputBar, [{
+        key: "sendMessage",
+        value: function sendMessage(e) {
+            console.log("ChatInputBar.sendMessage");
+
+            e.preventDefault();
+            this.setState({ message: this.msgInput.value });
+            ChatStore.addMessage(this.msgInput.value);
+            //Empty the input field
+            this.msgInput.value = '';
+            //console.log("Message: " + this.msgInput.value);
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this9 = this;
+
+            console.log("ChatInputBar.render");
+
+            return _jsx("div", {
+                id: "chat-bar-container"
+            }, void 0, _jsx("form", {
+                id: "chat-form"
+            }, void 0, _react2.default.createElement("input", { key: 0, id: "chat-input", type: "text", placeholder: "Type your Message...", ref: function ref(input) {
+                    _this9.msgInput = input;
+                } }), _jsx("button", {
+                type: "submit",
+                id: "chat-submit",
+                className: "btn btn-success",
+                onClick: this.sendMessage.bind(this)
+            }, void 0, "Send Message")));
+        }
+    }]);
+
+    return ChatInputBar;
+}(_react.Component);
+
+var _ref3 = _jsx(ChatInputBar, {});
+
+var _ref4 = _jsx("h3", {}, void 0, "Register on the Chat Application");
+
+var RegisterBox = function (_React$Component) {
+    _inherits(RegisterBox, _React$Component);
+
+    function RegisterBox(props) {
+        _classCallCheck(this, RegisterBox);
+
+        var _this10 = _possibleConstructorReturn(this, (RegisterBox.__proto__ || Object.getPrototypeOf(RegisterBox)).call(this, props));
+
+        _this10.state = {
+            username: '',
+            password: '',
+            fullName: '',
+            email: ''
+
+        };
+
+        _this10.submitHandler = _this10.submitHandler.bind(_this10);
+        return _this10;
+    }
+
+    _createClass(RegisterBox, [{
+        key: "submitHandler",
+        value: function submitHandler(e) {
+            var _this11 = this;
+
+            e.preventDefault();
+
+            if (this.fullNameInput.value === '') {
+                alert('Please enter your full name');
+                return false;
+            } else if (this.userNameInput.value === '') {
+                alert('Please enter your username');
+                return false;
+            } else if (this.emailInput.value === '') {
+                alert('Please enter your email');
+                return false;
+            } else if (this.passInput.value === '') {
+                alert('Please enter your password');
+                return false;
+            }
+
+            _axios2.default.post("http://localhost:3000/user/register", {
+                fullName: this.fullNameInput.value,
+                username: this.userNameInput.value,
+                email: this.emailInput.value,
+                password: this.passInput.value
+            }).then(function (res) {
+
+                if (res.status == 200 && res.data.status == "success") {
+                    alert('You have successfully registered to the server');
+                    //show login box
+                    _this11.props.showLoginBox();
+                } else if (res.data.status = "error") {
+                    alert(res.data.message);
+                    console.log(res.data.message);
+                }
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this12 = this;
+
+            return _jsx("div", {
+                className: "login-box"
+            }, void 0, _jsx("div", {
+                className: "login-box-container"
+            }, void 0, _ref4, _react2.default.createElement("input", { name: "fullname", type: "text", className: "form-control",
+                ref: function ref(input) {
+                    return _this12.fullNameInput = input;
+                }, placeholder: "Enter Full Name", key: 0 }), _react2.default.createElement("input", { name: "username", type: "text", className: "form-control",
+                ref: function ref(input) {
+                    return _this12.userNameInput = input;
+                }, placeholder: "Enter your Username", key: 1 }), _react2.default.createElement("input", { name: "email", type: "text", className: "form-control",
+                ref: function ref(input) {
+                    return _this12.emailInput = input;
+                }, placeholder: "Enter your Email", key: 2 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control",
+                ref: function ref(passInput) {
+                    return _this12.passInput = passInput;
+                }, placeholder: "Password", key: 3 }), _jsx("button", {
+                type: "button",
+                className: "btn btn-success btn-block",
+                onClick: this.submitHandler
+            }, void 0, "Register"), _jsx("a", {
+                href: "#",
+                onClick: function onClick() {
+                    _this12.props.showLoginBox();
+                }
+            }, void 0, "Back to Login!")));
+        }
+    }]);
+
+    return RegisterBox;
+}(_react2.default.Component);
+
+var _ref5 = _jsx("h3", {}, void 0, "Login to the Chat Application");
+
+var LoginBox = function (_Component5) {
+    _inherits(LoginBox, _Component5);
+
+    function LoginBox(props) {
+        _classCallCheck(this, LoginBox);
+
+        /*this.state = {
+            email: "",
+            password: "",
+        }*/
+
+        var _this13 = _possibleConstructorReturn(this, (LoginBox.__proto__ || Object.getPrototypeOf(LoginBox)).call(this, props));
+
+        console.log("Props from LoginBox ", props);
+
+        _this13.handleLoginSubmit = _this13.handleLoginSubmit.bind(_this13);
+        return _this13;
+    }
+
+    _createClass(LoginBox, [{
+        key: "setCookies",
+        value: function setCookies(username, token) {
+            //set jwt cookie
+            cookies.set({
+                url: 'http://localhost',
+                domain: 'localhost',
+                name: 'JWToken',
+                value: token,
+                expiratonDate: Date.now() / 1000 + 7 * 24 * 3600
+            }, function (err) {
+                if (err) console.log(err);
+            });
+
+            //set username cookie
+            cookies.set({
+                url: 'http://localhost',
+                domain: 'localhost',
+                name: 'Username',
+                value: username,
+                expiratonDate: Date.now() / 1000 + 7 * 24 * 3600
+            }, function (err) {
+                if (err) console.log(err);
+            });
+        }
+    }, {
+        key: "handleLoginSubmit",
+        value: function handleLoginSubmit() {
+            var _this14 = this;
+
+            console.log("handleLoginSubmit");
+
+            var email = this.emailInput.value;
+            var password = this.passInput.value;
+
+            if (email === '') {
+                alert("Please enter your email!");
+                return;
+            } else if (password === '') {
+                alert("Please enter your password!");
+            }
+
+            _axios2.default.post("http://localhost:3000/user/login", {
+                email: email,
+                password: password
+            }).then(function (res) {
+                if (res.status == 200 && res.data.status == "success") {
+
+                    //this.setState({ email, password}); //needed?
+
+                    console.log("Username: ", email, " Token: ", res.data.token);
+
+                    //save user login
+                    _this14.setCookies(email, res.data.token);
+
+                    ChatStore.init(email);
+
+                    //Hide login box
+                    _this14.props.hideLoginBox();
+                } else if (res.data.status == "error") {
+                    alert(res.data.message);
+                }
+            }).catch(function (err) {
+                console.log("Axios error: ", err);
+                alert("Error connecting to the server");
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this15 = this;
+
+            return _jsx("div", {
+                className: "login-box"
+            }, void 0, _jsx("div", {
+                className: "login-box-container"
+            }, void 0, _ref5, _react2.default.createElement("input", { name: "email", type: "text", className: "form-control",
+                ref: function ref(input) {
+                    return _this15.emailInput = input;
+                }, placeholder: "Email", key: 0 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control",
+                ref: function ref(passInput) {
+                    return _this15.passInput = passInput;
+                }, placeholder: "Password", key: 1 }), _jsx("button", {
+                type: "button",
+                className: "btn btn-success btn-block",
+                onClick: this.handleLoginSubmit
+            }, void 0, "Login"), _jsx("a", {
+                href: "#",
+                onClick: function onClick() {
+                    _this15.props.showRegisterBox();
+                }
+            }, void 0, "You don't have an Account, Please register!")));
+        }
+    }]);
+
+    return LoginBox;
+}(_react.Component);
+
+//Connected Users Component
+
+
+var _ref6 = _jsx("div", {
+    className: "bordered-header"
+}, void 0, "Online");
+
+var _ref7 = _jsx("h5", {}, void 0, "No One is Online!");
+
+function ConnectedUsers(props) {
+    console.log("PROPS: ", props);
+    return _jsx("div", {
+        className: "users-container"
+    }, void 0, _ref6, _jsx("div", {
+        className: "flex-container-vert",
+        style: { alignItems: "center", marginTop: "11px" }
+    }, void 0, !props.connected.length && _ref7, props.connected.map(function (usr, idx) {
+        return _jsx("h5", {}, void 0, usr.username);
+    })));
+}
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 4 */,
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var bind = __webpack_require__(29);
+var isBuffer = __webpack_require__(62);
 
 /*global toString:true*/
 
@@ -374,7 +976,7 @@ module.exports = {
 
 
 /***/ }),
-/* 1 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -543,17 +1145,17 @@ Emitter.prototype.hasListeners = function(event){
 
 
 /***/ }),
-/* 2 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var utf8 = __webpack_require__(98);
-var hasBinary = __webpack_require__(37);
-var after = __webpack_require__(100);
-var keys = __webpack_require__(101);
+var utf8 = __webpack_require__(103);
+var hasBinary = __webpack_require__(45);
+var after = __webpack_require__(105);
+var keys = __webpack_require__(106);
 
 /**
  * Current protocol version.
@@ -1025,25 +1627,25 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 
 
 /***/ }),
-/* 3 */
+/* 11 */
 /***/ (function(module, exports) {
 
 module.exports = require("tty");
 
 /***/ }),
-/* 4 */
+/* 12 */
 /***/ (function(module, exports) {
 
 module.exports = require("util");
 
 /***/ }),
-/* 5 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-const os = __webpack_require__(72);
-const hasFlag = __webpack_require__(73);
+const os = __webpack_require__(77);
+const hasFlag = __webpack_require__(78);
 
 const env = Object({"NODE_ENV":"development"});
 
@@ -1175,7 +1777,7 @@ module.exports = {
 
 
 /***/ }),
-/* 6 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -1184,14 +1786,14 @@ module.exports = {
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer') {
-  module.exports = __webpack_require__(85);
+  module.exports = __webpack_require__(90);
 } else {
-  module.exports = __webpack_require__(87);
+  module.exports = __webpack_require__(92);
 }
 
 
 /***/ }),
-/* 7 */
+/* 15 */
 /***/ (function(module, exports) {
 
 /**
@@ -1234,7 +1836,7 @@ exports.decode = function(qs){
 
 
 /***/ }),
-/* 8 */
+/* 16 */
 /***/ (function(module, exports) {
 
 
@@ -1246,7 +1848,7 @@ module.exports = function(a, b){
 };
 
 /***/ }),
-/* 9 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -1255,21 +1857,21 @@ module.exports = function(a, b){
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer') {
-  module.exports = __webpack_require__(102);
+  module.exports = __webpack_require__(107);
 } else {
-  module.exports = __webpack_require__(104);
+  module.exports = __webpack_require__(109);
 }
 
 
 /***/ }),
-/* 10 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var normalizeHeaderName = __webpack_require__(59);
+var utils = __webpack_require__(8);
+var normalizeHeaderName = __webpack_require__(64);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -1285,10 +1887,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(60);
+    adapter = __webpack_require__(65);
   } else if (typeof process !== 'undefined') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(65);
+    adapter = __webpack_require__(70);
   }
   return adapter;
 }
@@ -1365,13 +1967,13 @@ module.exports = defaults;
 
 
 /***/ }),
-/* 11 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var enhanceError = __webpack_require__(23);
+var enhanceError = __webpack_require__(31);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -1390,25 +1992,25 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 12 */
+/* 20 */
 /***/ (function(module, exports) {
 
 module.exports = require("http");
 
 /***/ }),
-/* 13 */
+/* 21 */
 /***/ (function(module, exports) {
 
 module.exports = require("https");
 
 /***/ }),
-/* 14 */
+/* 22 */
 /***/ (function(module, exports) {
 
 module.exports = require("url");
 
 /***/ }),
-/* 15 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -1416,11 +2018,11 @@ module.exports = require("url");
  * Module dependencies.
  */
 
-var debug = __webpack_require__(88)('socket.io-parser');
-var Emitter = __webpack_require__(1);
-var binary = __webpack_require__(92);
-var isArray = __webpack_require__(32);
-var isBuf = __webpack_require__(33);
+var debug = __webpack_require__(93)('socket.io-parser');
+var Emitter = __webpack_require__(9);
+var binary = __webpack_require__(97);
+var isArray = __webpack_require__(40);
+var isBuf = __webpack_require__(41);
 
 /**
  * Protocol version.
@@ -1829,7 +2431,7 @@ function error(msg) {
 
 
 /***/ }),
-/* 16 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -1845,9 +2447,9 @@ function error(msg) {
  * @license MIT
  */
 
-var fs = __webpack_require__(95);
-var Url = __webpack_require__(14);
-var spawn = __webpack_require__(96).spawn;
+var fs = __webpack_require__(100);
+var Url = __webpack_require__(22);
+var spawn = __webpack_require__(101).spawn;
 
 /**
  * Module exports.
@@ -1877,8 +2479,8 @@ function XMLHttpRequest(opts) {
    * Private variables
    */
   var self = this;
-  var http = __webpack_require__(12);
-  var https = __webpack_require__(13);
+  var http = __webpack_require__(20);
+  var https = __webpack_require__(21);
 
   // Holds http.js objects
   var request;
@@ -2486,15 +3088,15 @@ function XMLHttpRequest(opts) {
 
 
 /***/ }),
-/* 17 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var parser = __webpack_require__(2);
-var Emitter = __webpack_require__(1);
+var parser = __webpack_require__(10);
+var Emitter = __webpack_require__(9);
 
 /**
  * Module exports.
@@ -2652,7 +3254,7 @@ Transport.prototype.onClose = function () {
 
 
 /***/ }),
-/* 18 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2661,12 +3263,12 @@ Transport.prototype.onClose = function () {
 if (false) {
   module.exports = require('./cjs/react.production.min.js');
 } else {
-  module.exports = __webpack_require__(47);
+  module.exports = __webpack_require__(52);
 }
 
 
 /***/ }),
-/* 19 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2763,7 +3365,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 
 /***/ }),
-/* 20 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2779,7 +3381,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 var printWarning = function() {};
 
 if (true) {
-  var ReactPropTypesSecret = __webpack_require__(48);
+  var ReactPropTypesSecret = __webpack_require__(53);
   var loggedTypeFailures = {};
   var has = Function.call.bind(Object.prototype.hasOwnProperty);
 
@@ -2872,7 +3474,7 @@ module.exports = checkPropTypes;
 
 
 /***/ }),
-/* 21 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2890,13 +3492,13 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 22 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var createError = __webpack_require__(11);
+var createError = __webpack_require__(19);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -2923,7 +3525,7 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 23 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2951,13 +3553,13 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 24 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(8);
 
 function encode(val) {
   return encodeURIComponent(val).
@@ -3024,16 +3626,16 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 25 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var url = __webpack_require__(14);
+var url = __webpack_require__(22);
 var URL = url.URL;
-var http = __webpack_require__(12);
-var https = __webpack_require__(13);
-var assert = __webpack_require__(66);
-var Writable = __webpack_require__(67).Writable;
-var debug = __webpack_require__(68)("follow-redirects");
+var http = __webpack_require__(20);
+var https = __webpack_require__(21);
+var assert = __webpack_require__(71);
+var Writable = __webpack_require__(72).Writable;
+var debug = __webpack_require__(73)("follow-redirects");
 
 // RFC7231§4.2.1: Of the request methods defined by this specification,
 // the GET, HEAD, OPTIONS, and TRACE methods are defined to be safe.
@@ -3464,7 +4066,7 @@ module.exports.wrap = wrap;
 
 
 /***/ }),
-/* 26 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3481,7 +4083,7 @@ function setup(env) {
   createDebug.disable = disable;
   createDebug.enable = enable;
   createDebug.enabled = enabled;
-  createDebug.humanize = __webpack_require__(70);
+  createDebug.humanize = __webpack_require__(75);
   Object.keys(env).forEach(function (key) {
     createDebug[key] = env[key];
   });
@@ -3720,7 +4322,7 @@ module.exports = setup;
 
 
 /***/ }),
-/* 27 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3732,7 +4334,7 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 28 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3758,7 +4360,7 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 29 */
+/* 37 */
 /***/ (function(module, exports) {
 
 /**
@@ -3803,7 +4405,7 @@ module.exports = function parseuri(str) {
 
 
 /***/ }),
-/* 30 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -3819,7 +4421,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(86);
+exports.humanize = __webpack_require__(91);
 
 /**
  * Active `debug` instances.
@@ -4034,7 +4636,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 31 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -4050,7 +4652,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(90);
+exports.humanize = __webpack_require__(95);
 
 /**
  * Active `debug` instances.
@@ -4265,7 +4867,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 32 */
+/* 40 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -4276,7 +4878,7 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 33 */
+/* 41 */
 /***/ (function(module, exports) {
 
 
@@ -4302,7 +4904,7 @@ function isBuf(obj) {
 
 
 /***/ }),
-/* 34 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -4310,15 +4912,15 @@ function isBuf(obj) {
  * Module dependencies.
  */
 
-var eio = __webpack_require__(93);
-var Socket = __webpack_require__(41);
-var Emitter = __webpack_require__(1);
-var parser = __webpack_require__(15);
-var on = __webpack_require__(42);
-var bind = __webpack_require__(43);
-var debug = __webpack_require__(6)('socket.io-client:manager');
-var indexOf = __webpack_require__(40);
-var Backoff = __webpack_require__(109);
+var eio = __webpack_require__(98);
+var Socket = __webpack_require__(49);
+var Emitter = __webpack_require__(9);
+var parser = __webpack_require__(23);
+var on = __webpack_require__(50);
+var bind = __webpack_require__(51);
+var debug = __webpack_require__(14)('socket.io-client:manager');
+var indexOf = __webpack_require__(48);
+var Backoff = __webpack_require__(114);
 
 /**
  * IE6+ hasOwnProperty
@@ -4881,17 +5483,17 @@ Manager.prototype.onreconnect = function () {
 
 
 /***/ }),
-/* 35 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies
  */
 
-var XMLHttpRequest = __webpack_require__(16);
-var XHR = __webpack_require__(97);
-var JSONP = __webpack_require__(105);
-var websocket = __webpack_require__(106);
+var XMLHttpRequest = __webpack_require__(24);
+var XHR = __webpack_require__(102);
+var JSONP = __webpack_require__(110);
+var websocket = __webpack_require__(111);
 
 /**
  * Export transports.
@@ -4940,19 +5542,19 @@ function polling (opts) {
 
 
 /***/ }),
-/* 36 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var Transport = __webpack_require__(17);
-var parseqs = __webpack_require__(7);
-var parser = __webpack_require__(2);
-var inherit = __webpack_require__(8);
-var yeast = __webpack_require__(38);
-var debug = __webpack_require__(9)('engine.io-client:polling');
+var Transport = __webpack_require__(25);
+var parseqs = __webpack_require__(15);
+var parser = __webpack_require__(10);
+var inherit = __webpack_require__(16);
+var yeast = __webpack_require__(46);
+var debug = __webpack_require__(17)('engine.io-client:polling');
 
 /**
  * Module exports.
@@ -4965,7 +5567,7 @@ module.exports = Polling;
  */
 
 var hasXHR2 = (function () {
-  var XMLHttpRequest = __webpack_require__(16);
+  var XMLHttpRequest = __webpack_require__(24);
   var xhr = new XMLHttpRequest({ xdomain: false });
   return null != xhr.responseType;
 })();
@@ -5191,7 +5793,7 @@ Polling.prototype.uri = function () {
 
 
 /***/ }),
-/* 37 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* global Blob File */
@@ -5200,7 +5802,7 @@ Polling.prototype.uri = function () {
  * Module requirements.
  */
 
-var isArray = __webpack_require__(99);
+var isArray = __webpack_require__(104);
 
 var toString = Object.prototype.toString;
 var withNativeBlob = typeof Blob === 'function' ||
@@ -5261,7 +5863,7 @@ function hasBinary (obj) {
 
 
 /***/ }),
-/* 38 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5336,7 +5938,7 @@ module.exports = yeast;
 
 
 /***/ }),
-/* 39 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -5352,7 +5954,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(103);
+exports.humanize = __webpack_require__(108);
 
 /**
  * Active `debug` instances.
@@ -5567,7 +6169,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 40 */
+/* 48 */
 /***/ (function(module, exports) {
 
 
@@ -5582,7 +6184,7 @@ module.exports = function(arr, obj){
 };
 
 /***/ }),
-/* 41 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -5590,14 +6192,14 @@ module.exports = function(arr, obj){
  * Module dependencies.
  */
 
-var parser = __webpack_require__(15);
-var Emitter = __webpack_require__(1);
-var toArray = __webpack_require__(108);
-var on = __webpack_require__(42);
-var bind = __webpack_require__(43);
-var debug = __webpack_require__(6)('socket.io-client:socket');
-var parseqs = __webpack_require__(7);
-var hasBin = __webpack_require__(37);
+var parser = __webpack_require__(23);
+var Emitter = __webpack_require__(9);
+var toArray = __webpack_require__(113);
+var on = __webpack_require__(50);
+var bind = __webpack_require__(51);
+var debug = __webpack_require__(14)('socket.io-client:socket');
+var parseqs = __webpack_require__(15);
+var hasBin = __webpack_require__(45);
 
 /**
  * Module exports.
@@ -6026,7 +6628,7 @@ Socket.prototype.binary = function (binary) {
 
 
 /***/ }),
-/* 42 */
+/* 50 */
 /***/ (function(module, exports) {
 
 
@@ -6056,7 +6658,7 @@ function on (obj, ev, fn) {
 
 
 /***/ }),
-/* 43 */
+/* 51 */
 /***/ (function(module, exports) {
 
 /**
@@ -6085,529 +6687,7 @@ module.exports = function(obj, fn){
 
 
 /***/ }),
-/* 44 */
-/***/ (function(module, exports, __webpack_require__) {
-
-__webpack_require__(45);
-module.exports = __webpack_require__(112);
-
-
-/***/ }),
-/* 45 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-//Main Renderer
-var renderer = __webpack_require__(46);
-
-/***/ }),
-/* 46 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _jsx = function () { var REACT_ELEMENT_TYPE = typeof Symbol === "function" && Symbol.for && Symbol.for("react.element") || 0xeac7; return function createRawReactElement(type, props, key, children) { var defaultProps = type && type.defaultProps; var childrenLength = arguments.length - 3; if (!props && childrenLength !== 0) { props = {}; } if (props && defaultProps) { for (var propName in defaultProps) { if (props[propName] === void 0) { props[propName] = defaultProps[propName]; } } } else if (!props) { props = defaultProps || {}; } if (childrenLength === 1) { props.children = children; } else if (childrenLength > 1) { var childArray = Array(childrenLength); for (var i = 0; i < childrenLength; i++) { childArray[i] = arguments[i + 3]; } props.children = childArray; } return { $$typeof: REACT_ELEMENT_TYPE, type: type, key: key === undefined ? null : '' + key, ref: null, props: props, _owner: null }; }; }();
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(18);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _reactDom = __webpack_require__(49);
-
-var _reactDom2 = _interopRequireDefault(_reactDom);
-
-var _axios = __webpack_require__(55);
-
-var _axios2 = _interopRequireDefault(_axios);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*const io = require('socket.io-client');
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               let socket = io('http://localhost:3000');
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               socket.emit("chat-message", "Hello There");*/
-
-var io = __webpack_require__(83);
-
-var ChatStore = __webpack_require__(110);
-
-var root = document.getElementById("root");
-
-document.addEventListener("DOMContentLoaded", function (e) {
-    _reactDom2.default.render(_ref, root);
-});
-
-//main proc remote
-var remote = __webpack_require__(117).remote;
-
-//session and cookies
-var defaultSession = remote.session.defaultSession;
-var cookies = defaultSession.cookies;
-
-var _ref2 = _jsx("div", {
-    id: "side-area",
-    className: "col-md-4 flex-grow-2"
-}, void 0, "Side");
-
-var App = function (_Component) {
-    _inherits(App, _Component);
-
-    function App(props) {
-        _classCallCheck(this, App);
-
-        var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
-
-        _this.state = {
-            url: "http://localhost:3000",
-            messages: [],
-            username: "NO USER",
-            showLoginBox: true,
-            showRegisterBox: false
-        };
-
-        _this.hideLoginBox = _this.hideLoginBox.bind(_this);
-        _this.showRegisterBox = _this.showRegisterBox.bind(_this);
-        _this.showLoginBox = _this.showLoginBox.bind(_this);
-        return _this;
-    }
-
-    _createClass(App, [{
-        key: "componentWillMount",
-        value: function componentWillMount() {
-            var _this2 = this;
-
-            //check for login cookies
-            var username = null,
-                token = null;
-            cookies.get({ name: 'JWToken' }, function (err, ck) {
-                if (err) console.log('Token Cookie error, ', err);
-                if (ck[0]) {
-                    console.log('TOKEN: ', ck[0].value);
-                    token = ck[0].value;
-                    cookies.get({ name: 'Username' }, function (err, ck1) {
-                        if (err) console.log('Username Cookie error, ', err);
-                        if (ck1[0]) {
-                            console.log('TOKEN: ', ck1[0].value);
-                            username = ck1[0].value;
-
-                            //set default axios auth headers
-                            if (username && token) {
-                                _axios2.default.defaults.headers.common['authentication'] = token;
-                                ChatStore.init(username);
-                                _this2.hideLoginBox();
-                            }
-                        }
-                    });
-                }
-            });
-
-            this.initSocket();
-
-            ChatStore.on("initialized", function (username) {
-                _this2.setState({ username: username });
-            });
-
-            ChatStore.on("new-message", function (msg) {
-                //Store the message
-                var newMsg = { msg: msg, username: _this2.state.username };
-                _this2.setState(function (prevState) {
-                    return { messages: [].concat(_toConsumableArray(prevState.messages), [newMsg]) };
-                });
-                _this2.io.emit("chat-message", newMsg);
-                console.log("New Message " + JSON.stringify(newMsg));
-            });
-
-            //Message coming from other users
-            this.io.on("chat-message", function (newMsg) {
-                _this2.setState(function (prevState) {
-                    return {
-                        messages: [].concat(_toConsumableArray(prevState.messages), [newMsg])
-                    };
-                });
-                console.log("Message from another user ", newMsg);
-            });
-        }
-    }, {
-        key: "hideLoginBox",
-        value: function hideLoginBox() {
-            this.setState({ showLoginBox: false });
-        }
-    }, {
-        key: "initSocket",
-        value: function initSocket() {
-            console.log("initSocket");
-            this.io = io(this.state.url);
-            console.log(this.io);
-        }
-    }, {
-        key: "showRegisterBox",
-        value: function showRegisterBox() {
-            console.log("triggering showRegisterBox");
-            this.setState({ showLoginBox: false, showRegisterBox: true });
-        }
-    }, {
-        key: "showLoginBox",
-        value: function showLoginBox() {
-            console.log("triggering showLoginBox");
-            this.setState({ showLoginBox: true, showRegisterBox: false });
-        }
-    }, {
-        key: "render",
-        value: function render() {
-
-            return _jsx("div", {
-                className: "flex-parent"
-            }, void 0, this.state.showLoginBox && _jsx(LoginBox, {
-                hideLoginBox: this.hideLoginBox,
-                showRegisterBox: this.showRegisterBox
-            }), this.state.showRegisterBox && _jsx(RegisterBox, {
-                showLoginBox: this.showLoginBox
-            }), _jsx("div", {
-                className: "flex-container-horz flex-grow"
-            }, void 0, _ref2, _jsx(ChatContainer, {
-                messages: this.state.messages,
-                username: this.state.username
-            })), _ref3);
-        }
-    }]);
-
-    return App;
-}(_react.Component);
-
-var _ref = _jsx(App, {});
-
-var ChatContainer = function (_Component2) {
-    _inherits(ChatContainer, _Component2);
-
-    function ChatContainer(props) {
-        _classCallCheck(this, ChatContainer);
-
-        return _possibleConstructorReturn(this, (ChatContainer.__proto__ || Object.getPrototypeOf(ChatContainer)).call(this, props));
-    }
-
-    _createClass(ChatContainer, [{
-        key: "render",
-        value: function render() {
-            var _this4 = this;
-
-            return _jsx("div", {
-                id: "main-area",
-                className: "col-md-9 flex-grow-3"
-            }, void 0, _jsx("ul", {
-                className: "messages-container-owner"
-            }, void 0, this.props.messages.map(function (msgObj, index) {
-                {
-                    if (msgObj.username == _this4.props.username) {
-                        return _jsx("li", {
-                            "class": "message"
-                        }, index, "You - " + msgObj.msg);
-                    }
-                }
-            })), _jsx("ul", {
-                className: "messages-container-sender"
-            }, void 0, this.props.messages.map(function (msgObj, index) {
-                {
-                    if (msgObj.username != _this4.props.username) {
-                        return _jsx("li", {
-                            "class": "message"
-                        }, index, msgObj.username + " - " + msgObj.msg);
-                    }
-                }
-            })));
-        }
-    }]);
-
-    return ChatContainer;
-}(_react.Component);
-
-var ChatInputBar = function (_Component3) {
-    _inherits(ChatInputBar, _Component3);
-
-    function ChatInputBar(props) {
-        _classCallCheck(this, ChatInputBar);
-
-        var _this5 = _possibleConstructorReturn(this, (ChatInputBar.__proto__ || Object.getPrototypeOf(ChatInputBar)).call(this, props));
-
-        _this5.state = {
-            message: ""
-        };
-
-        console.log("ChatInputBar.constructor");
-
-        return _this5;
-    }
-
-    _createClass(ChatInputBar, [{
-        key: "sendMessage",
-        value: function sendMessage(e) {
-            console.log("ChatInputBar.sendMessage");
-
-            e.preventDefault();
-            this.setState({ message: this.msgInput.value });
-            ChatStore.addMessage(this.msgInput.value);
-            //Empty the input field
-            this.msgInput.value = '';
-            //console.log("Message: " + this.msgInput.value);
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            var _this6 = this;
-
-            console.log("ChatInputBar.render");
-
-            return _jsx("div", {
-                id: "chat-bar-container"
-            }, void 0, _jsx("form", {
-                id: "chat-form"
-            }, void 0, _react2.default.createElement("input", { key: 0, id: "chat-input", type: "text", placeholder: "Type your Message...", ref: function ref(input) {
-                    _this6.msgInput = input;
-                } }), _jsx("button", {
-                type: "submit",
-                id: "chat-submit",
-                className: "btn btn-success",
-                onClick: this.sendMessage.bind(this)
-            }, void 0, "Send Message")));
-        }
-    }]);
-
-    return ChatInputBar;
-}(_react.Component);
-
-var _ref3 = _jsx(ChatInputBar, {});
-
-var _ref4 = _jsx("h3", {}, void 0, "Register on the Chat Application");
-
-var RegisterBox = function (_React$Component) {
-    _inherits(RegisterBox, _React$Component);
-
-    function RegisterBox(props) {
-        _classCallCheck(this, RegisterBox);
-
-        var _this7 = _possibleConstructorReturn(this, (RegisterBox.__proto__ || Object.getPrototypeOf(RegisterBox)).call(this, props));
-
-        _this7.state = {
-            username: '',
-            password: '',
-            fullName: '',
-            email: ''
-
-        };
-
-        _this7.submitHandler = _this7.submitHandler.bind(_this7);
-        return _this7;
-    }
-
-    _createClass(RegisterBox, [{
-        key: "submitHandler",
-        value: function submitHandler(e) {
-            var _this8 = this;
-
-            e.preventDefault();
-
-            if (this.fullNameInput.value === '') {
-                alert('Please enter your full name');
-                return false;
-            } else if (this.userNameInput.value === '') {
-                alert('Please enter your username');
-                return false;
-            } else if (this.emailInput.value === '') {
-                alert('Please enter your email');
-                return false;
-            } else if (this.passInput.value === '') {
-                alert('Please enter your password');
-                return false;
-            }
-
-            _axios2.default.post("http://localhost:3000/user/register", {
-                fullName: this.fullNameInput.value,
-                username: this.userNameInput.value,
-                email: this.emailInput.value,
-                password: this.passInput.value
-            }).then(function (res) {
-
-                if (res.status == 200 && res.data.status == "success") {
-                    alert('You have successfully registered to the server');
-                    //show login box
-                    _this8.props.showLoginBox();
-                } else if (res.data.status = "error") {
-                    alert(res.data.message);
-                    console.log(res.data.message);
-                }
-            }).catch(function (err) {
-                console.log(err);
-            });
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            var _this9 = this;
-
-            return _jsx("div", {
-                className: "login-box"
-            }, void 0, _jsx("div", {
-                className: "login-box-container"
-            }, void 0, _ref4, _react2.default.createElement("input", { name: "fullname", type: "text", className: "form-control",
-                ref: function ref(input) {
-                    return _this9.fullNameInput = input;
-                }, placeholder: "Enter Full Name", key: 0 }), _react2.default.createElement("input", { name: "username", type: "text", className: "form-control",
-                ref: function ref(input) {
-                    return _this9.userNameInput = input;
-                }, placeholder: "Enter your Username", key: 1 }), _react2.default.createElement("input", { name: "email", type: "text", className: "form-control",
-                ref: function ref(input) {
-                    return _this9.emailInput = input;
-                }, placeholder: "Enter your Email", key: 2 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control",
-                ref: function ref(passInput) {
-                    return _this9.passInput = passInput;
-                }, placeholder: "Password", key: 3 }), _jsx("button", {
-                type: "button",
-                className: "btn btn-success btn-block",
-                onClick: this.submitHandler
-            }, void 0, "Register"), _jsx("a", {
-                href: "#",
-                onClick: function onClick() {
-                    _this9.props.showLoginBox();
-                }
-            }, void 0, "Back to Login!")));
-        }
-    }]);
-
-    return RegisterBox;
-}(_react2.default.Component);
-
-var _ref5 = _jsx("h3", {}, void 0, "Login to the Chat Application");
-
-var LoginBox = function (_Component4) {
-    _inherits(LoginBox, _Component4);
-
-    function LoginBox(props) {
-        _classCallCheck(this, LoginBox);
-
-        /*this.state = {
-            email: "",
-            password: "",
-        }*/
-
-        var _this10 = _possibleConstructorReturn(this, (LoginBox.__proto__ || Object.getPrototypeOf(LoginBox)).call(this, props));
-
-        console.log("Props from LoginBox ", props);
-
-        _this10.handleLoginSubmit = _this10.handleLoginSubmit.bind(_this10);
-        return _this10;
-    }
-
-    _createClass(LoginBox, [{
-        key: "setCookies",
-        value: function setCookies(username, token) {
-            //set jwt cookie
-            cookies.set({
-                url: 'http://localhost',
-                domain: 'localhost',
-                name: 'JWToken',
-                value: token,
-                expiratonDate: Date.now() / 1000 + 7 * 24 * 3600
-            }, function (err) {
-                if (err) console.log(err);
-            });
-
-            //set username cookie
-            cookies.set({
-                url: 'http://localhost',
-                domain: 'localhost',
-                name: 'Username',
-                value: username,
-                expiratonDate: Date.now() / 1000 + 7 * 24 * 3600
-            }, function (err) {
-                if (err) console.log(err);
-            });
-        }
-    }, {
-        key: "handleLoginSubmit",
-        value: function handleLoginSubmit() {
-            var _this11 = this;
-
-            console.log("handleLoginSubmit");
-
-            var email = this.emailInput.value;
-            var password = this.passInput.value;
-
-            if (email === '') {
-                alert("Please enter your email!");
-                return;
-            } else if (password === '') {
-                alert("Please enter your password!");
-            }
-
-            _axios2.default.post("http://localhost:3000/user/login", {
-                email: email,
-                password: password
-            }).then(function (res) {
-                if (res.status == 200 && res.data.status == "success") {
-
-                    //this.setState({ email, password}); //needed?
-
-                    console.log("Username: ", email, " Token: ", res.data.token);
-
-                    //save user login
-                    _this11.setCookies(email, res.data.token);
-
-                    ChatStore.init(email);
-
-                    //Hide login box
-                    _this11.props.hideLoginBox();
-                } else if (res.data.status == "error") {
-                    alert(res.data.message);
-                }
-            }).catch(function (err) {
-                console.log("Axios error: ", err);
-                alert("Error connecting to the server");
-            });
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            var _this12 = this;
-
-            return _jsx("div", {
-                className: "login-box"
-            }, void 0, _jsx("div", {
-                className: "login-box-container"
-            }, void 0, _ref5, _react2.default.createElement("input", { name: "email", type: "text", className: "form-control",
-                ref: function ref(input) {
-                    return _this12.emailInput = input;
-                }, placeholder: "Email", key: 0 }), _react2.default.createElement("input", { name: "password", type: "password", className: "form-control",
-                ref: function ref(passInput) {
-                    return _this12.passInput = passInput;
-                }, placeholder: "Password", key: 1 }), _jsx("button", {
-                type: "button",
-                className: "btn btn-success btn-block",
-                onClick: this.handleLoginSubmit
-            }, void 0, "Login"), _jsx("a", {
-                href: "#",
-                onClick: function onClick() {
-                    _this12.props.showRegisterBox();
-                }
-            }, void 0, "You don't have an Account, Please register!")));
-        }
-    }]);
-
-    return LoginBox;
-}(_react.Component);
-
-/***/ }),
-/* 47 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6628,8 +6708,8 @@ if (true) {
   (function() {
 'use strict';
 
-var _assign = __webpack_require__(19);
-var checkPropTypes = __webpack_require__(20);
+var _assign = __webpack_require__(27);
+var checkPropTypes = __webpack_require__(28);
 
 // TODO: this is special because it gets imported during build.
 
@@ -8515,7 +8595,7 @@ module.exports = react;
 
 
 /***/ }),
-/* 48 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8534,7 +8614,7 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 49 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8574,12 +8654,12 @@ if (false) {
   checkDCE();
   module.exports = require('./cjs/react-dom.production.min.js');
 } else {
-  module.exports = __webpack_require__(50);
+  module.exports = __webpack_require__(55);
 }
 
 
 /***/ }),
-/* 50 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8600,11 +8680,11 @@ if (true) {
   (function() {
 'use strict';
 
-var React = __webpack_require__(18);
-var _assign = __webpack_require__(19);
-var checkPropTypes = __webpack_require__(20);
-var scheduler = __webpack_require__(51);
-var tracing = __webpack_require__(53);
+var React = __webpack_require__(26);
+var _assign = __webpack_require__(27);
+var checkPropTypes = __webpack_require__(28);
+var scheduler = __webpack_require__(56);
+var tracing = __webpack_require__(58);
 
 /**
  * Use invariant() to assert state which your program assumes to be true.
@@ -29818,7 +29898,7 @@ module.exports = reactDom;
 
 
 /***/ }),
-/* 51 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29827,12 +29907,12 @@ module.exports = reactDom;
 if (false) {
   module.exports = require('./cjs/scheduler.production.min.js');
 } else {
-  module.exports = __webpack_require__(52);
+  module.exports = __webpack_require__(57);
 }
 
 
 /***/ }),
-/* 52 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30538,7 +30618,7 @@ exports.unstable_getFirstCallbackNode = unstable_getFirstCallbackNode;
 
 
 /***/ }),
-/* 53 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30547,12 +30627,12 @@ exports.unstable_getFirstCallbackNode = unstable_getFirstCallbackNode;
 if (false) {
   module.exports = require('./cjs/scheduler-tracing.production.min.js');
 } else {
-  module.exports = __webpack_require__(54);
+  module.exports = __webpack_require__(59);
 }
 
 
 /***/ }),
-/* 54 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30982,22 +31062,22 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 
 
 /***/ }),
-/* 55 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(56);
+module.exports = __webpack_require__(61);
 
 /***/ }),
-/* 56 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var bind = __webpack_require__(21);
-var Axios = __webpack_require__(58);
-var defaults = __webpack_require__(10);
+var utils = __webpack_require__(8);
+var bind = __webpack_require__(29);
+var Axios = __webpack_require__(63);
+var defaults = __webpack_require__(18);
 
 /**
  * Create an instance of Axios
@@ -31030,15 +31110,15 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(28);
-axios.CancelToken = __webpack_require__(81);
-axios.isCancel = __webpack_require__(27);
+axios.Cancel = __webpack_require__(36);
+axios.CancelToken = __webpack_require__(86);
+axios.isCancel = __webpack_require__(35);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(82);
+axios.spread = __webpack_require__(87);
 
 module.exports = axios;
 
@@ -31047,7 +31127,7 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 57 */
+/* 62 */
 /***/ (function(module, exports) {
 
 /*!
@@ -31074,16 +31154,16 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 58 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var defaults = __webpack_require__(10);
-var utils = __webpack_require__(0);
-var InterceptorManager = __webpack_require__(76);
-var dispatchRequest = __webpack_require__(77);
+var defaults = __webpack_require__(18);
+var utils = __webpack_require__(8);
+var InterceptorManager = __webpack_require__(81);
+var dispatchRequest = __webpack_require__(82);
 
 /**
  * Create a new instance of Axios
@@ -31160,13 +31240,13 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 59 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(8);
 
 module.exports = function normalizeHeaderName(headers, normalizedName) {
   utils.forEach(headers, function processHeader(value, name) {
@@ -31179,19 +31259,19 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 60 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var settle = __webpack_require__(22);
-var buildURL = __webpack_require__(24);
-var parseHeaders = __webpack_require__(61);
-var isURLSameOrigin = __webpack_require__(62);
-var createError = __webpack_require__(11);
-var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(63);
+var utils = __webpack_require__(8);
+var settle = __webpack_require__(30);
+var buildURL = __webpack_require__(32);
+var parseHeaders = __webpack_require__(66);
+var isURLSameOrigin = __webpack_require__(67);
+var createError = __webpack_require__(19);
+var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(68);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -31288,7 +31368,7 @@ module.exports = function xhrAdapter(config) {
     // This is only done if running in a standard browser environment.
     // Specifically not if we're in a web worker, or react-native.
     if (utils.isStandardBrowserEnv()) {
-      var cookies = __webpack_require__(64);
+      var cookies = __webpack_require__(69);
 
       // Add xsrf header
       var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -31366,13 +31446,13 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 61 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(8);
 
 // Headers whose duplicates are ignored by node
 // c.f. https://nodejs.org/api/http.html#http_message_headers
@@ -31426,13 +31506,13 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 62 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(8);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -31501,7 +31581,7 @@ module.exports = (
 
 
 /***/ }),
-/* 63 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31544,13 +31624,13 @@ module.exports = btoa;
 
 
 /***/ }),
-/* 64 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(8);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -31604,24 +31684,24 @@ module.exports = (
 
 
 /***/ }),
-/* 65 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var settle = __webpack_require__(22);
-var buildURL = __webpack_require__(24);
-var http = __webpack_require__(12);
-var https = __webpack_require__(13);
-var httpFollow = __webpack_require__(25).http;
-var httpsFollow = __webpack_require__(25).https;
-var url = __webpack_require__(14);
-var zlib = __webpack_require__(74);
-var pkg = __webpack_require__(75);
-var createError = __webpack_require__(11);
-var enhanceError = __webpack_require__(23);
+var utils = __webpack_require__(8);
+var settle = __webpack_require__(30);
+var buildURL = __webpack_require__(32);
+var http = __webpack_require__(20);
+var https = __webpack_require__(21);
+var httpFollow = __webpack_require__(33).http;
+var httpsFollow = __webpack_require__(33).https;
+var url = __webpack_require__(22);
+var zlib = __webpack_require__(79);
+var pkg = __webpack_require__(80);
+var createError = __webpack_require__(19);
+var enhanceError = __webpack_require__(31);
 
 /*eslint consistent-return:0*/
 module.exports = function httpAdapter(config) {
@@ -31848,19 +31928,19 @@ module.exports = function httpAdapter(config) {
 
 
 /***/ }),
-/* 66 */
+/* 71 */
 /***/ (function(module, exports) {
 
 module.exports = require("assert");
 
 /***/ }),
-/* 67 */
+/* 72 */
 /***/ (function(module, exports) {
 
 module.exports = require("stream");
 
 /***/ }),
-/* 68 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31871,15 +31951,15 @@ module.exports = require("stream");
  * treat as a browser.
  */
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-  module.exports = __webpack_require__(69);
+  module.exports = __webpack_require__(74);
 } else {
-  module.exports = __webpack_require__(71);
+  module.exports = __webpack_require__(76);
 }
 
 
 
 /***/ }),
-/* 69 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32049,7 +32129,7 @@ function localstorage() {
   }
 }
 
-module.exports = __webpack_require__(26)(exports);
+module.exports = __webpack_require__(34)(exports);
 var formatters = module.exports.formatters;
 /**
  * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
@@ -32066,7 +32146,7 @@ formatters.j = function (v) {
 
 
 /***/ }),
-/* 70 */
+/* 75 */
 /***/ (function(module, exports) {
 
 /**
@@ -32234,7 +32314,7 @@ function plural(ms, msAbs, n, name) {
 
 
 /***/ }),
-/* 71 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32243,9 +32323,9 @@ function plural(ms, msAbs, n, name) {
 /**
  * Module dependencies.
  */
-var tty = __webpack_require__(3);
+var tty = __webpack_require__(11);
 
-var util = __webpack_require__(4);
+var util = __webpack_require__(12);
 /**
  * This is the Node.js implementation of `debug()`.
  */
@@ -32266,7 +32346,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
   // Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
   // eslint-disable-next-line import/no-extraneous-dependencies
-  var supportsColor = __webpack_require__(5);
+  var supportsColor = __webpack_require__(13);
 
   if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
     exports.colors = [20, 21, 26, 27, 32, 33, 38, 39, 40, 41, 42, 43, 44, 45, 56, 57, 62, 63, 68, 69, 74, 75, 76, 77, 78, 79, 80, 81, 92, 93, 98, 99, 112, 113, 128, 129, 134, 135, 148, 149, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 178, 179, 184, 185, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 214, 215, 220, 221];
@@ -32392,7 +32472,7 @@ function init(debug) {
   }
 }
 
-module.exports = __webpack_require__(26)(exports);
+module.exports = __webpack_require__(34)(exports);
 var formatters = module.exports.formatters;
 /**
  * Map %o to `util.inspect()`, all on a single line.
@@ -32415,13 +32495,13 @@ formatters.O = function (v) {
 
 
 /***/ }),
-/* 72 */
+/* 77 */
 /***/ (function(module, exports) {
 
 module.exports = require("os");
 
 /***/ }),
-/* 73 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32436,25 +32516,25 @@ module.exports = (flag, argv) => {
 
 
 /***/ }),
-/* 74 */
+/* 79 */
 /***/ (function(module, exports) {
 
 module.exports = require("zlib");
 
 /***/ }),
-/* 75 */
+/* 80 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"axios","version":"0.18.0","description":"Promise based HTTP client for the browser and node.js","main":"index.js","scripts":{"test":"grunt test && bundlesize","start":"node ./sandbox/server.js","build":"NODE_ENV=production grunt build","preversion":"npm test","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json","postversion":"git push && git push --tags","examples":"node ./examples/server.js","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"},"repository":{"type":"git","url":"https://github.com/axios/axios.git"},"keywords":["xhr","http","ajax","promise","node"],"author":"Matt Zabriskie","license":"MIT","bugs":{"url":"https://github.com/axios/axios/issues"},"homepage":"https://github.com/axios/axios","devDependencies":{"bundlesize":"^0.5.7","coveralls":"^2.11.9","es6-promise":"^4.0.5","grunt":"^1.0.1","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.0.0","grunt-contrib-nodeunit":"^1.0.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^19.0.0","grunt-karma":"^2.0.0","grunt-ts":"^6.0.0-beta.3","grunt-webpack":"^1.0.18","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^1.3.0","karma-chrome-launcher":"^2.0.0","karma-coverage":"^1.0.0","karma-firefox-launcher":"^1.0.0","karma-jasmine":"^1.0.2","karma-jasmine-ajax":"^0.1.13","karma-opera-launcher":"^1.0.0","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^1.1.0","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^1.7.0","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","sinon":"^1.17.4","webpack":"^1.13.1","webpack-dev-server":"^1.14.1","url-search-params":"^0.6.1","typescript":"^2.0.3"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"typings":"./index.d.ts","dependencies":{"follow-redirects":"^1.3.0","is-buffer":"^1.1.5"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}]}
 
 /***/ }),
-/* 76 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(8);
 
 function InterceptorManager() {
   this.handlers = [];
@@ -32507,18 +32587,18 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 77 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var transformData = __webpack_require__(78);
-var isCancel = __webpack_require__(27);
-var defaults = __webpack_require__(10);
-var isAbsoluteURL = __webpack_require__(79);
-var combineURLs = __webpack_require__(80);
+var utils = __webpack_require__(8);
+var transformData = __webpack_require__(83);
+var isCancel = __webpack_require__(35);
+var defaults = __webpack_require__(18);
+var isAbsoluteURL = __webpack_require__(84);
+var combineURLs = __webpack_require__(85);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -32600,13 +32680,13 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 78 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(8);
 
 /**
  * Transform the data for a request or a response
@@ -32627,7 +32707,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 79 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32648,7 +32728,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 80 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32669,13 +32749,13 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 81 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Cancel = __webpack_require__(28);
+var Cancel = __webpack_require__(36);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -32733,7 +32813,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 82 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32767,7 +32847,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 83 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -32775,10 +32855,10 @@ module.exports = function spread(callback) {
  * Module dependencies.
  */
 
-var url = __webpack_require__(84);
-var parser = __webpack_require__(15);
-var Manager = __webpack_require__(34);
-var debug = __webpack_require__(6)('socket.io-client');
+var url = __webpack_require__(89);
+var parser = __webpack_require__(23);
+var Manager = __webpack_require__(42);
+var debug = __webpack_require__(14)('socket.io-client');
 
 /**
  * Module exports.
@@ -32862,12 +32942,12 @@ exports.connect = lookup;
  * @api public
  */
 
-exports.Manager = __webpack_require__(34);
-exports.Socket = __webpack_require__(41);
+exports.Manager = __webpack_require__(42);
+exports.Socket = __webpack_require__(49);
 
 
 /***/ }),
-/* 84 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -32875,8 +32955,8 @@ exports.Socket = __webpack_require__(41);
  * Module dependencies.
  */
 
-var parseuri = __webpack_require__(29);
-var debug = __webpack_require__(6)('socket.io-client:url');
+var parseuri = __webpack_require__(37);
+var debug = __webpack_require__(14)('socket.io-client:url');
 
 /**
  * Module exports.
@@ -32948,7 +33028,7 @@ function url (uri, loc) {
 
 
 /***/ }),
-/* 85 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -32957,7 +33037,7 @@ function url (uri, loc) {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(30);
+exports = module.exports = __webpack_require__(38);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -33149,7 +33229,7 @@ function localstorage() {
 
 
 /***/ }),
-/* 86 */
+/* 91 */
 /***/ (function(module, exports) {
 
 /**
@@ -33307,15 +33387,15 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 87 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var tty = __webpack_require__(3);
-var util = __webpack_require__(4);
+var tty = __webpack_require__(11);
+var util = __webpack_require__(12);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -33323,7 +33403,7 @@ var util = __webpack_require__(4);
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(30);
+exports = module.exports = __webpack_require__(38);
 exports.init = init;
 exports.log = log;
 exports.formatArgs = formatArgs;
@@ -33338,7 +33418,7 @@ exports.useColors = useColors;
 exports.colors = [ 6, 2, 3, 4, 5, 1 ];
 
 try {
-  var supportsColor = __webpack_require__(5);
+  var supportsColor = __webpack_require__(13);
   if (supportsColor && supportsColor.level >= 2) {
     exports.colors = [
       20, 21, 26, 27, 32, 33, 38, 39, 40, 41, 42, 43, 44, 45, 56, 57, 62, 63, 68,
@@ -33499,7 +33579,7 @@ exports.enable(load());
 
 
 /***/ }),
-/* 88 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -33508,14 +33588,14 @@ exports.enable(load());
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer') {
-  module.exports = __webpack_require__(89);
+  module.exports = __webpack_require__(94);
 } else {
-  module.exports = __webpack_require__(91);
+  module.exports = __webpack_require__(96);
 }
 
 
 /***/ }),
-/* 89 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -33524,7 +33604,7 @@ if (typeof process === 'undefined' || process.type === 'renderer') {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(31);
+exports = module.exports = __webpack_require__(39);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -33716,7 +33796,7 @@ function localstorage() {
 
 
 /***/ }),
-/* 90 */
+/* 95 */
 /***/ (function(module, exports) {
 
 /**
@@ -33874,15 +33954,15 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 91 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var tty = __webpack_require__(3);
-var util = __webpack_require__(4);
+var tty = __webpack_require__(11);
+var util = __webpack_require__(12);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -33890,7 +33970,7 @@ var util = __webpack_require__(4);
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(31);
+exports = module.exports = __webpack_require__(39);
 exports.init = init;
 exports.log = log;
 exports.formatArgs = formatArgs;
@@ -33905,7 +33985,7 @@ exports.useColors = useColors;
 exports.colors = [ 6, 2, 3, 4, 5, 1 ];
 
 try {
-  var supportsColor = __webpack_require__(5);
+  var supportsColor = __webpack_require__(13);
   if (supportsColor && supportsColor.level >= 2) {
     exports.colors = [
       20, 21, 26, 27, 32, 33, 38, 39, 40, 41, 42, 43, 44, 45, 56, 57, 62, 63, 68,
@@ -34066,7 +34146,7 @@ exports.enable(load());
 
 
 /***/ }),
-/* 92 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*global Blob,File*/
@@ -34075,8 +34155,8 @@ exports.enable(load());
  * Module requirements
  */
 
-var isArray = __webpack_require__(32);
-var isBuf = __webpack_require__(33);
+var isArray = __webpack_require__(40);
+var isBuf = __webpack_require__(41);
 var toString = Object.prototype.toString;
 var withNativeBlob = typeof Blob === 'function' || (typeof Blob !== 'undefined' && toString.call(Blob) === '[object BlobConstructor]');
 var withNativeFile = typeof File === 'function' || (typeof File !== 'undefined' && toString.call(File) === '[object FileConstructor]');
@@ -34213,11 +34293,11 @@ exports.removeBlobs = function(data, callback) {
 
 
 /***/ }),
-/* 93 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
-module.exports = __webpack_require__(94);
+module.exports = __webpack_require__(99);
 
 /**
  * Exports parser
@@ -34225,24 +34305,24 @@ module.exports = __webpack_require__(94);
  * @api public
  *
  */
-module.exports.parser = __webpack_require__(2);
+module.exports.parser = __webpack_require__(10);
 
 
 /***/ }),
-/* 94 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var transports = __webpack_require__(35);
-var Emitter = __webpack_require__(1);
-var debug = __webpack_require__(9)('engine.io-client:socket');
-var index = __webpack_require__(40);
-var parser = __webpack_require__(2);
-var parseuri = __webpack_require__(29);
-var parseqs = __webpack_require__(7);
+var transports = __webpack_require__(43);
+var Emitter = __webpack_require__(9);
+var debug = __webpack_require__(17)('engine.io-client:socket');
+var index = __webpack_require__(48);
+var parser = __webpack_require__(10);
+var parseuri = __webpack_require__(37);
+var parseqs = __webpack_require__(15);
 
 /**
  * Module exports.
@@ -34377,9 +34457,9 @@ Socket.protocol = parser.protocol; // this is an int
  */
 
 Socket.Socket = Socket;
-Socket.Transport = __webpack_require__(17);
-Socket.transports = __webpack_require__(35);
-Socket.parser = __webpack_require__(2);
+Socket.Transport = __webpack_require__(25);
+Socket.transports = __webpack_require__(43);
+Socket.parser = __webpack_require__(10);
 
 /**
  * Creates transport of the given type.
@@ -34981,19 +35061,19 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 
 
 /***/ }),
-/* 95 */
+/* 100 */
 /***/ (function(module, exports) {
 
 module.exports = require("fs");
 
 /***/ }),
-/* 96 */
+/* 101 */
 /***/ (function(module, exports) {
 
 module.exports = require("child_process");
 
 /***/ }),
-/* 97 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* global attachEvent */
@@ -35002,11 +35082,11 @@ module.exports = require("child_process");
  * Module requirements.
  */
 
-var XMLHttpRequest = __webpack_require__(16);
-var Polling = __webpack_require__(36);
-var Emitter = __webpack_require__(1);
-var inherit = __webpack_require__(8);
-var debug = __webpack_require__(9)('engine.io-client:polling-xhr');
+var XMLHttpRequest = __webpack_require__(24);
+var Polling = __webpack_require__(44);
+var Emitter = __webpack_require__(9);
+var inherit = __webpack_require__(16);
+var debug = __webpack_require__(17)('engine.io-client:polling-xhr');
 
 /**
  * Module exports.
@@ -35414,7 +35494,7 @@ function unloadHandler () {
 
 
 /***/ }),
-/* 98 */
+/* 103 */
 /***/ (function(module, exports) {
 
 /*! https://mths.be/utf8js v2.1.2 by @mathias */
@@ -35630,7 +35710,7 @@ module.exports = {
 
 
 /***/ }),
-/* 99 */
+/* 104 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -35641,7 +35721,7 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 100 */
+/* 105 */
 /***/ (function(module, exports) {
 
 module.exports = after
@@ -35675,7 +35755,7 @@ function noop() {}
 
 
 /***/ }),
-/* 101 */
+/* 106 */
 /***/ (function(module, exports) {
 
 
@@ -35700,7 +35780,7 @@ module.exports = Object.keys || function keys (obj){
 
 
 /***/ }),
-/* 102 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -35709,7 +35789,7 @@ module.exports = Object.keys || function keys (obj){
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(39);
+exports = module.exports = __webpack_require__(47);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -35901,7 +35981,7 @@ function localstorage() {
 
 
 /***/ }),
-/* 103 */
+/* 108 */
 /***/ (function(module, exports) {
 
 /**
@@ -36059,15 +36139,15 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 104 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var tty = __webpack_require__(3);
-var util = __webpack_require__(4);
+var tty = __webpack_require__(11);
+var util = __webpack_require__(12);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -36075,7 +36155,7 @@ var util = __webpack_require__(4);
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(39);
+exports = module.exports = __webpack_require__(47);
 exports.init = init;
 exports.log = log;
 exports.formatArgs = formatArgs;
@@ -36090,7 +36170,7 @@ exports.useColors = useColors;
 exports.colors = [ 6, 2, 3, 4, 5, 1 ];
 
 try {
-  var supportsColor = __webpack_require__(5);
+  var supportsColor = __webpack_require__(13);
   if (supportsColor && supportsColor.level >= 2) {
     exports.colors = [
       20, 21, 26, 27, 32, 33, 38, 39, 40, 41, 42, 43, 44, 45, 56, 57, 62, 63, 68,
@@ -36251,15 +36331,15 @@ exports.enable(load());
 
 
 /***/ }),
-/* 105 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module requirements.
  */
 
-var Polling = __webpack_require__(36);
-var inherit = __webpack_require__(8);
+var Polling = __webpack_require__(44);
+var inherit = __webpack_require__(16);
 
 /**
  * Module exports.
@@ -36496,19 +36576,19 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 
 
 /***/ }),
-/* 106 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var Transport = __webpack_require__(17);
-var parser = __webpack_require__(2);
-var parseqs = __webpack_require__(7);
-var inherit = __webpack_require__(8);
-var yeast = __webpack_require__(38);
-var debug = __webpack_require__(9)('engine.io-client:websocket');
+var Transport = __webpack_require__(25);
+var parser = __webpack_require__(10);
+var parseqs = __webpack_require__(15);
+var inherit = __webpack_require__(16);
+var yeast = __webpack_require__(46);
+var debug = __webpack_require__(17)('engine.io-client:websocket');
 
 var BrowserWebSocket, NodeWebSocket;
 
@@ -36518,7 +36598,7 @@ if (typeof WebSocket !== 'undefined') {
   BrowserWebSocket = self.WebSocket || self.MozWebSocket;
 } else {
   try {
-    NodeWebSocket = __webpack_require__(107);
+    NodeWebSocket = __webpack_require__(112);
   } catch (e) { }
 }
 
@@ -36795,14 +36875,14 @@ WS.prototype.check = function () {
 
 
 /***/ }),
-/* 107 */
+/* 112 */
 /***/ (function(module, exports) {
 
 if(typeof require('ws') === 'undefined') {var e = new Error("Cannot find module \"require('ws')\""); e.code = 'MODULE_NOT_FOUND'; throw e;}
 module.exports = require('ws');
 
 /***/ }),
-/* 108 */
+/* 113 */
 /***/ (function(module, exports) {
 
 module.exports = toArray
@@ -36821,7 +36901,7 @@ function toArray(list, index) {
 
 
 /***/ }),
-/* 109 */
+/* 114 */
 /***/ (function(module, exports) {
 
 
@@ -36912,7 +36992,7 @@ Backoff.prototype.setJitter = function(jitter){
 
 
 /***/ }),
-/* 110 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36926,7 +37006,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var EventEmitter = __webpack_require__(111).EventEmitter;
+var EventEmitter = __webpack_require__(116).EventEmitter;
 
 var ChatStore = function (_EventEmitter) {
     _inherits(ChatStore, _EventEmitter);
@@ -36972,22 +37052,12 @@ var ChatStore = function (_EventEmitter) {
 module.exports = new ChatStore();
 
 /***/ }),
-/* 111 */
+/* 116 */
 /***/ (function(module, exports) {
 
 module.exports = require("events");
 
 /***/ }),
-/* 112 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 113 */,
-/* 114 */,
-/* 115 */,
-/* 116 */,
 /* 117 */
 /***/ (function(module, exports) {
 

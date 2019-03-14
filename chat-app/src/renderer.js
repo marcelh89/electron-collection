@@ -63,7 +63,7 @@ class App extends Component {
 
                         //set default axios auth headers
                         if(username && token){
-                            axios.defaults.headers.common['authentication'] = token;
+                            axios.defaults.headers.common['authentication'] = "JWT " + token;
                             ChatStore.init(username);
                             this.hideLoginBox();
                         }
@@ -74,33 +74,30 @@ class App extends Component {
             
         });
 
-        
-
-      
-
-
-        this.initSocket();
-
         ChatStore.on("initialized", (username) => {
+            this.initSocket(username);
             this.setState({username: username});
+
+            ChatStore.on("new-message", (msg) => {
+                //Store the message
+                let newMsg = {msg: msg, username: this.state.username };
+                this.setState((prevState) => ({messages: [...prevState.messages, newMsg]}));
+                this.io.emit("chat-message", newMsg);
+                console.log("New Message " + JSON.stringify(newMsg));
+            });
+    
+    
+            //Message coming from other users
+            this.io.on("chat-message", (newMsg) => {
+                this.setState(prevState => ({
+                    messages: [...prevState.messages, newMsg]
+                }))
+                console.log("Message from another user ",newMsg);
+            });
+
         });
 
-        ChatStore.on("new-message", (msg) => {
-            //Store the message
-            let newMsg = {msg: msg, username: this.state.username };
-            this.setState((prevState) => ({messages: [...prevState.messages, newMsg]}));
-            this.io.emit("chat-message", newMsg);
-            console.log("New Message " + JSON.stringify(newMsg));
-        });
-
-
-        //Message coming from other users
-        this.io.on("chat-message", (newMsg) => {
-            this.setState(prevState => ({
-                messages: [...prevState.messages, newMsg]
-            }))
-            console.log("Message from another user ",newMsg);
-        })
+       
         
     }
 
@@ -108,10 +105,9 @@ class App extends Component {
         this.setState({showLoginBox: false})
     }
 
-    initSocket() {
-        console.log("initSocket");
+    initSocket(username) {
         this.io = io(this.state.url);
-        console.log(this.io);
+        this.io.emit("connectedUser", username);
 
     }
 
@@ -133,9 +129,7 @@ class App extends Component {
                 {this.state.showRegisterBox && (<RegisterBox showLoginBox={this.showLoginBox}/>)}
                 
                 <div className="flex-container-horz flex-grow">
-                    <div id="side-area" className="col-md-4 flex-grow-2">
-                        Side
-                    </div>
+                    <SideArea />
                     <ChatContainer messages={this.state.messages} username={this.state.username} />
 
                 </div>
@@ -143,6 +137,44 @@ class App extends Component {
             </div>
         );
 
+    }
+}
+
+class SideArea extends Component {
+    constructor(props){
+        super(props);
+        this.state = { users: []};
+    }
+
+    getConnectedUsers () {
+        axios.get("http://localhost:3000/user/connected")
+        .then(res => {
+            if(res.data.connectedUsers.length > 0){
+                this.setState({users: res.data.connectedUsers});
+                console.log(res.data.connectedUsers);
+            }
+        }).catch(err => {
+            if(err){
+                console.log("Connected Users Error: ", err);
+            }
+        })
+    }
+
+    componentWillMount(){
+        setTimeout(() => {
+            setInterval(() => {
+                this.getConnectedUsers();
+            }, 2000);
+        }, 2000);
+    }
+
+    render(){
+        return (
+            <div id="side-area" className="col-md-3 flex-grow-2">
+                <ConnectedUsers connected={this.state.users} />
+            </div>
+        );
+        
     }
 }
 
@@ -400,3 +432,22 @@ class LoginBox extends Component {
         );
     }
 }
+
+//Connected Users Component
+function ConnectedUsers(props) {
+    console.log("PROPS: ", props);
+    return (
+      <div className="users-container">
+        <div className="bordered-header">Online</div>
+        <div
+          className="flex-container-vert"
+          style={{ alignItems: "center", marginTop: "11px" }}
+        >
+          {!props.connected.length && <h5>No One is Online!</h5>}
+          {props.connected.map((usr, idx) => {
+            return <h5>{usr.username}</h5>;
+          })}
+        </div>
+      </div>
+    );
+  }

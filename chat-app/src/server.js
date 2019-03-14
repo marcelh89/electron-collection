@@ -45,10 +45,16 @@ let userRoutes = require('../api/routes/userRoutes');
 userRoutes.route(app);
 
 
+let users = require('../api/users');
 
 
 io.on('connection', (socket) => {
     console.log('New client is connected!');
+
+    socket.on("connectedUser", username => {
+        users.addNewUser(username);
+        console.log("New User: ", username);
+    });
 
     socket.on("chat-message", (msg) => {
         console.log("New Message: ", msg);

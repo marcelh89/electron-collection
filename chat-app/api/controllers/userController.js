@@ -1,6 +1,3 @@
-//FAke data:
-//users = [{ username: "user", password: "user"}]
-
 //let User = require('../models/userModel');
 const mongoose = require('mongoose');
 let User = mongoose.model("User");
@@ -67,5 +64,15 @@ exports.loginRequired = (req, res, next) => {
             status: "error",
             message: "You do not have permissions to access this Server Resource!"
         });
+    }
+};
+
+let users = require('../users');
+
+exports.connectedUsers = (req, res, next) => {
+    if(users.getConnectedUsers().length > 0){
+        return res.json({status: 'Success', connectedUsers: users.getConnectedUsers()})
+    }else{
+        return res.json({status: 'Success', connectedUsers: [], message: "No connected users"});
     }
 };
