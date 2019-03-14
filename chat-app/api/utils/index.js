@@ -1,9 +1,7 @@
 exports.addArrItem = (arr, item) => {
-    if (typeof arr != "object") return null;
-    //Check if Arr doesn't have the item
-    let idx;
-    if ((idx = arr.indexOf(item)) != -1) return null;
-    arr.push(item);
+    let found = arr.find(e => e.key === item.key);;
+    if (!found)
+        arr.push(item);
     return arr;
 };
 

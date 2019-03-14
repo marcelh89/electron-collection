@@ -31,6 +31,7 @@ let webpack = require("webpack");
 // "electron"],
 
 mix.webpackConfig((module.exports = {
+    devtool: 'eval-source-map',
     target: "node",
     watch: true,
     externals: [(function() {
