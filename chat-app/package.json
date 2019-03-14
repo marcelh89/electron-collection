@@ -23,6 +23,7 @@
     "webpack": "^3.10.0"
   },
   "dependencies": {
+    "@blueprintjs/core": "^3.14.1",
     "axios": "^0.18.0",
     "babel": "^6.23.0",
     "babel-core": "^6.26.0",

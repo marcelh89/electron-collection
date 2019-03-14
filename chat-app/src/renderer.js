@@ -7,6 +7,12 @@ socket.emit("chat-message", "Hello There");*/
 import React, {Component} from "react";
 import ReactDOM from "react-dom";
 import axios from "axios";
+import {
+    Intent,
+    Popover,
+    Position,
+    PopoverInteractionKind
+} from "@blueprintjs/core";
 
 const io = require('socket.io-client');
 
@@ -172,6 +178,35 @@ class SideArea extends Component {
         return (
             <div id="side-area" className="col-md-3 flex-grow-2">
                 <ConnectedUsers connected={this.state.users} />
+                <Popover position={Position.RIGHT} isOpen={this.state.isSettingsOpen} content={
+                    <div className="settings-container">
+                    <div className="bordered-header">Settings</div>
+                    <div className="options-container">
+                      <div className="option">
+                        <a
+                          href="#"
+                          onClick={() => this.props.toggleUpdateUserDetails()}
+                        >
+                          Update Details
+                        </a>
+                      </div>
+                      <div className="option">
+                        <p>Sign Out of the Chat</p>
+                        <button
+                          type="button"
+                          className="pt-button pt-intent-danger"
+                          onClick={() => {}}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+    </div>
+                }>
+
+                <span className="fa fa-cog fa-2x" onClick={() => { this.setState((prevState) => { isSettingsOpen: !prevState.isSettingsOpen }) }}></span>
+                    
+                </Popover>
             </div>
         );
         
