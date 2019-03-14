@@ -8,5 +8,10 @@ exports.route = app => {
 
     app.route('/user/register').post(userController.registerController);
 
+    app.route('/user/connected').get(userController.loginRequired, (req, res) => {
+        console.log("route /user/connected");
+        res.json({status: 'success', connectedUsers: ['Alex', 'Islem']});
+    });
+
 
 }

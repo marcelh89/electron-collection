@@ -19,7 +19,14 @@ document.addEventListener("DOMContentLoaded", e => {
 
 });
 
-//const EventEmitter = require("events").EventEmitter;
+//main proc remote
+let remote = require("electron").remote;
+
+
+//session and cookies
+let defaultSession = remote.session.defaultSession;
+let cookies = defaultSession.cookies;
+
 
 class App extends Component {
     constructor(props){
@@ -38,7 +45,40 @@ class App extends Component {
     }
 
     componentWillMount(){
-        console.log("componentWillMount");
+
+        //check for login cookies
+        let username = null, token = null;
+        cookies.get({name: 'JWToken'}, (err, ck) => {
+            if(err)
+                console.log('Token Cookie error, ', err);
+            if(ck[0]){
+                console.log('TOKEN: ', ck[0].value);
+                token = ck[0].value;
+                cookies.get({name: 'Username'}, (err, ck1) => {
+                    if(err)
+                        console.log('Username Cookie error, ', err);
+                    if(ck1[0]){
+                        console.log('TOKEN: ', ck1[0].value);
+                        username = ck1[0].value;
+
+                        //set default axios auth headers
+                        if(username && token){
+                            axios.defaults.headers.common['authentication'] = token;
+                            ChatStore.init(username);
+                            this.hideLoginBox();
+                        }
+                    }
+                    
+                });
+            }
+            
+        });
+
+        
+
+      
+
+
         this.initSocket();
 
         ChatStore.on("initialized", (username) => {
@@ -89,7 +129,7 @@ class App extends Component {
 
         return (
             <div className="flex-parent">
-                {this.state.showLoginBox && (<LoginBox showRegisterBox={this.showRegisterBox}/>)}
+                {this.state.showLoginBox && (<LoginBox hideLoginBox={this.hideLoginBox} showRegisterBox={this.showRegisterBox}/>)}
                 {this.state.showRegisterBox && (<RegisterBox showLoginBox={this.showLoginBox}/>)}
                 
                 <div className="flex-container-horz flex-grow">
@@ -257,39 +297,76 @@ class RegisterBox extends React.Component {
 class LoginBox extends Component {
     constructor(props){
         super(props);
-        this.state = {
-            username: "",
+        /*this.state = {
+            email: "",
             password: "",
-        }
+        }*/
 
         console.log("Props from LoginBox ", props)
 
         this.handleLoginSubmit = this.handleLoginSubmit.bind(this);
     }
 
+    setCookies(username, token){
+        //set jwt cookie
+        cookies.set({
+            url: 'http://localhost',
+            domain: 'localhost',
+            name: 'JWToken',
+            value: token,
+            expiratonDate: ( Date.now() / 1000 ) + ( 7 * 24 * 3600) 
+        }, err => {
+            if(err)
+                console.log(err);
+        } );
+
+        //set username cookie
+        cookies.set({
+            url: 'http://localhost',
+            domain: 'localhost',
+            name: 'Username',
+            value: username,
+            expiratonDate: ( Date.now() / 1000 ) + ( 7 * 24 * 3600) 
+        }, err => {
+            if(err)
+                console.log(err);
+        } );
+
+    }
+
     handleLoginSubmit(){
 
-        const username = this.userNameInput.value;
+        console.log("handleLoginSubmit")
+
+        const email = this.emailInput.value;
         const password = this.passInput.value;
 
-        if(username === ''){
-            alert("Please enter your username!");
+        if(email === ''){
+            alert("Please enter your email!");
             return;
         } else if(password === ''){
             alert("Please enter your password!")
         }
 
         axios.post("http://localhost:3000/user/login", {
-            username,
+            email,
             password
         }).then (res => {
             if(res.status == 200 && res.data.status == "success"){
-                this.setState({
-                    username,
-                    password
-                });
 
-                ChatStore.init(username);
+                //this.setState({ email, password}); //needed?
+
+                console.log(
+                    "Username: ",
+                    email,
+                    " Token: ",
+                    res.data.token
+                );
+
+                //save user login
+                this.setCookies(email, res.data.token);
+
+                ChatStore.init(email);
 
                  //Hide login box
                 this.props.hideLoginBox();
@@ -310,8 +387,8 @@ class LoginBox extends Component {
             <div className="login-box">
                 <div className="login-box-container">
                   <h3>Login to the Chat Application</h3>
-                  <input name="username" type="text" className="form-control" 
-                  ref={input => (this.userNameInput = input)} placeholder="Username or Email" key={0}/>
+                  <input name="email" type="text" className="form-control" 
+                  ref={input => (this.emailInput = input)} placeholder="Email" key={0}/>
                   <input name="password" type="password" className="form-control"
                   ref={passInput  => (this.passInput  = passInput )} placeholder="Password" key={1} />
                   <button type="button" className="btn btn-success btn-block" onClick={this.handleLoginSubmit}>

@@ -1,5 +1,5 @@
 let mongoose = require('mongoose');
-
+let bcrypt = require("bcrypt-nodejs");
 //Schema
 let UserSchema = new mongoose.Schema({
     fullName: {
@@ -28,6 +28,11 @@ let UserSchema = new mongoose.Schema({
     }
 
 });
+
+//compare hash and real password
+UserSchema.methods.comparePasswords = function(pass) {
+    return bcrypt.compareSync(pass, this.hash_password);
+};
 
 
 //compile and export

@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 let User = mongoose.model("User");
 
 let bcrypt = require('bcrypt-nodejs');
+let jwt = require('jsonwebtoken');
 
 exports.registerController = (req, res) => {
     console.log(User)
@@ -38,15 +39,33 @@ exports.loginController = (req, res) => {
 
     User.findOne({ email: req.body.email}, (err, user) => {
         if(err){
-            return res.status(401).json({status: 'error', message: err})
+            return res.status(401).json({status: 'error', message: err});
+        } else if( user){
+
+            if(user.comparePasswords(req.body.password)){
+                return res.json({
+                    status: 'success', 
+                    user: user, token: 
+                    jwt.sign({email: user.email, password: req.body.password}, "CHATAPPTKAPI123")
+                });
+            }
+
         }
 
-        if(user.hash_password == req.body.password){
-            return res.status(200).json({status: 'success', user: user})
-        }else{
-            res.status(401).json({status: 'error', message: 'User Credentials are wrong'})
-        }
+        return res.json({status: 'error', message: 'User Credentials are wrong'});
 
     });
 
+};
+
+exports.loginRequired = (req, res, next) => {
+    if (req.user) {
+        next();
+    } else {
+        console.log("Regected Request ");
+        return res.status(401).json({
+            status: "error",
+            message: "You do not have permissions to access this Server Resource!"
+        });
+    }
 };
