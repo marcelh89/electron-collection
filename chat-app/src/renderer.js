@@ -380,11 +380,6 @@ class ChatSettings extends React.Component {
     });
   }
 
-  //User Logout
-  logoutHandler() {
-    this.props.triggerDisconnected();
-  }
-
   render() {
     let settingsContent = (
       <div className="centered-container">
@@ -395,7 +390,7 @@ class ChatSettings extends React.Component {
             <Button
               text="Logout"
               intent={Intent.DANGER}
-              onClick={this.logoutHandler.bind(this)}
+              onClick={this.props.triggerDisconnected()}
             />
           </Label>
         </div>
@@ -609,7 +604,7 @@ class SideArea extends React.Component {
                     <button
                       type="button"
                       className="pt-button pt-intent-danger"
-                      onClick={() => {}}
+                      onClick={this.props.triggerDisconnected}
                     >
                       Logout
                     </button>
