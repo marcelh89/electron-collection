@@ -788,6 +788,8 @@ class RegisterBox extends React.Component {
         if (res.data.status == "success" && res.status == 200) {
           //Success
           alert("User Registered Successfully!");
+          this.props.handleLoginClick();
+
         } else if (res.data.status == "error") {
           alert("Error, Cannot Register User, Please Try Again!");
         } else{
