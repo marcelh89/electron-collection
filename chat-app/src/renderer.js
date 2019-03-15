@@ -20,7 +20,17 @@ document.addEventListener("DOMContentLoaded", e => {
 });
 
 //Socket IO Client
-const io = require("socket.io-client");
+//const io = require("socket.io-client");
+const WebSocket = require('ws');
+/*const ws = new WebSocket('ws://localhost:3000');
+
+ws.on('open', function open() {
+    this.ws.send(JSON.stringify({event: "connectedUser", content: "test"})); ///< Override the Base Connect Event
+});
+ 
+ws.on('message', function incoming(data) {
+  console.log(data);
+});*/
 
 import ChatStore from "./chatStore";
 //Convert Size into Supported DOM Sizes
@@ -52,30 +62,47 @@ class App extends React.Component {
       loginSuccess: false,
       showUpdateUserDetails: false
     };
+
+    this.triggerConnected = this.triggerConnected.bind(this);
+
   }
 
   initSocket() {
     //Connect to the Server using Socket IO
-    this.io = io("http://localhost:3000");
-    console.log("IO: ", this.io);
+    //this.io = io("http://localhost:3000");
+    //console.log("IO: ", this.io);
+    this.ws = new WebSocket('ws://localhost:3000')
+    
+    //console.log("IO: ", this.ws);
+
     //Connected Status
     this.setState({ status: "connected" });
     //Connection Event
-    this.triggerConnected();
+    //this.triggerConnected();
   }
 
   //Emit Connection Event to the Socket io server
   triggerConnected() {
-    if (!this.io)
+    console.log("triggerConnected")
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.log("not ready yet")
+    }else{
       console.log("App Not Initialized Please Call this After initSocket!");
-    console.log("Emiiting Connected Users ", this.state.username);
-    this.io.emit("connectedUser", this.state.username); ///< Override the Base Connect Event
+      console.log("Emiiting Connected Users ", this.state.username);
+      //ws.emit("connectedUser", this.state.username); ///< Override the Base Connect Event
+      this.ws.send(JSON.stringify({"event": "connectedUser", "content": this.state.username})); ///< Override the Base Connect Event
+  
+    }
+
+     
   }
 
   triggerDisconnected() {
-    this.io.emit("disconnectedUser", ChatStore.getUsername());
+    //ws.emit("disconnectedUser", ChatStore.getUsername());
+    this.ws.send(JSON.stringify({"event": "disconnectedUser", "content": ChatStore.getUsername()})); ///< Override the Base Connect Event
+
     //Remove Instance
-    this.io.disconnect();
+    this.ws.close();
     //Show Login Page
     this.setState({ showLoginBox: true, loginSuccess: false });
     //Remove Cookies
@@ -150,11 +177,54 @@ class App extends React.Component {
 
       //Disconnect Event
       app.on("will-quit", () => {
-        this.io.emit("disconnectedUser", this.state.username);
+        //ws.emit("disconnectedUser", this.state.username);
+        this.ws.send(JSON.stringify({"event": "disconnectedUser", "content": this.state.username})); ///< Override the Base Connect Event
+
+      });
+
+      const thiz = this;
+      this.ws.on('open', function open() {
+        console.log("########open############");
+
+        //init user
+        thiz.triggerConnected();
+
+      });
+
+      this.ws.on('message', msg => {
+        console.log("########message############");
+        
+        //switch for events
+        const parsed = JSON.parse(msg);
+        const {event, content} = parsed;
+
+        switch(event){
+            case 'chat-message': 
+            console.log("Received New Message ", content);
+            if (
+              content.username &&
+              content.message &&
+              content.username != this.state.username
+            ) {
+              this.setState(prevState => ({
+                messages: [
+                  ...prevState.messages,
+                  {
+                    message: content.message,
+                    username: content.username
+                  }
+                ]
+              }));
+            }
+              break;
+            default:
+        }
+
+
       });
 
       //Accpet Messages From Other Clients
-      this.io.on("chat-message", msg => {
+      this.ws.on("chat-message", msg => {
         console.log("Received New Message ", msg);
         if (
           msg.username &&
@@ -173,18 +243,22 @@ class App extends React.Component {
         }
       });
 
-      /* TYPING FEATURE! */
+        /* TYPING FEATURE! */
       //On Typing From The Store
       ChatStore.on("is-typing", () => {
         //Trigger Server Typing Event
-        this.io.emit("is-typing", this.state.username);
+        //ws.emit("is-typing", this.state.username);
+        this.ws.send(JSON.stringify({event: "is-typing", content: this.state.username})); ///< Override the Base Connect Event
+
       });
       ChatStore.on("stopped-typing", () => {
-        this.io.emit("stopped-typing", this.state.username);
+        //ws.emit("stopped-typing", this.state.username);
+        this.ws.send(JSON.stringify({event: "stopped-typing", content: this.state.username})); ///< Override the Base Connect Event
+
       });
 
       //On Start Typing From the Sockets
-      this.io.on("is-typing", user => {
+      this.ws.on("is-typing", user => {
         //Set Typing Object (Started)
         this.setState({
           typing: {
@@ -194,7 +268,7 @@ class App extends React.Component {
         });
       });
       //On Stopped Typing
-      this.io.on("stopped-typing", user => {
+      this.ws.on("stopped-typing", user => {
         //Set Typing Object (Stopped)
         this.setState({
           typing: {
@@ -209,10 +283,17 @@ class App extends React.Component {
     ChatStore.on("new-message", msg => {
       console.log("New MESSAGE", msg, this.state.username);
       //Send MESSAGE Over Sockets
-      this.io.emit("chat-message", {
+      /*ws.emit("chat-message", {
         message: msg,
         username: this.state.username
       });
+      */
+
+      this.ws.send(JSON.stringify({event: "chat-message", content: {
+        message: msg,
+        username: this.state.username
+      }})); ///< Override the Base Connect Event
+
 
       //Update Messages
       this.setState(prevState => ({

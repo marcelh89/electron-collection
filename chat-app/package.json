@@ -13,7 +13,7 @@
         "prod": "npm run production",
         "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
         "start": "electron .",
-        "server": "nodemon ./src/server.js",
+        "server": "nodemon --inspect ./src/server.js",
         "pack": "electron-builder --dir",
         "dist": "electron-builder"
     },
@@ -59,7 +59,7 @@
         "ultron": "^1.1.1",
         "utf-8-validate": "^4.0.2",
         "webpack-node-externals": "^1.6.0",
-        "ws": "file:ws"
+        "ws": "^6.2.0"
     },
     "devDependencies": {
         "babel-env": "^2.4.1",
