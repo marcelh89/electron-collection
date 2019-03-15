@@ -785,11 +785,13 @@ class RegisterBox extends React.Component {
     axios
       .post("http://localhost:3000/user/register", formData)
       .then(res => {
-        if (res.data == "success" && res.status == 200) {
+        if (res.data.status == "success" && res.status == 200) {
           //Success
           alert("User Registered Successfully!");
         } else if (res.data.status == "error") {
           alert("Error, Cannot Register User, Please Try Again!");
+        } else{
+          alert("Error, something else happened during registration!");
         }
       })
       .catch(e => {
