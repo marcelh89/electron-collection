@@ -52,58 +52,20 @@ let users = require("../api/users");
 
 function broadcastMessage (ws, message) {
     wss.clients.forEach(function each(client) {
-        if (ws != client && client.readyState === WebSocket.OPEN) {  //everyone but the one who sent the message
-        //if (client.readyState === WebSocket.OPEN) {
+        //if (ws != client && client.readyState === WebSocket.OPEN) {  //everyone but the one who sent the message
+        if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify(message));
         }
     });
 }
 
-//Main Socket Connection
-/*io.on("connection", socket => {
-    socket.on("connectedUser", username => {
-        users.addNewUser(username);
-        console.log("New User ", username);
-    });
-
-    socket.on("chat-message", msg => {
-        console.log("New Message " + msg.message);
-        socket.broadcast.emit("chat-message", msg);
-    });
-
-    //Started Typing
-    socket.on("is-typing", username => {
-        //Send Target Username (Started)
-        socket.broadcast.emit("is-typing", username);
-    });
-    //Stopped Typing
-    socket.on("stopped-typing", username => {
-        //Send Target UserName (Stopped)
-        socket.broadcast.emit("stopped-typing", username);
-    });
-});
-*/
-
-
 wss.on("connection", (ws) => {
-
-    /*ws.on('open', function open() {
-        console.log('open');
-        ws.send(Date.now());
-    });
-       
-    ws.on('close', function close() {
-        console.log('close');
-    });*/
 
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
-        //console.log(ws.WebSocket);
-
 
         //switch for events
         const parsed = JSON.parse(message);
-
         const {event, content} = parsed;
 
 
@@ -120,11 +82,11 @@ wss.on("connection", (ws) => {
                 break;
             case 'is-typing':
                 console.log("is-typing");
-                //broadcastMessage(ws, "is-typing", username);
+                broadcastMessage(ws, parsed);
                 break;
             case 'stopped-typing':
                 console.log("stopped-typing");
-                //broadcastMessage(ws, "stopped-typing", username);
+                broadcastMessage(ws, parsed);
                 break;
             case 'chat-message':
                 console.log("chat-message", content );
@@ -135,32 +97,10 @@ wss.on("connection", (ws) => {
 
         }
 
-        //broadcastMessage(ws, event, content);
+        // broadcastMessage(ws, parsed);
 
     });
 
-    /*ws.on("connectedUser", username => {
-        users.addNewUser(username);
-        onsocle.log("New User ", username);
-    });
-
-    ws.on("chat-message", msg => {
-        console.log("New Message " + msg.message);
-        broadcastMessage(ws, "chat-message", msg);
-    });
-
-    //Started Typing
-    ws.on("is-typing", username => {
-        //Send Target Username (Started)
-        broadcastMessage(ws, "is-typing", username);
-    });
-    //Stopped Typing
-    ws.on("stopped-typing", username => {
-        //Send Target UserName (Stopped)
-        broadcastMessage(ws, "stopped-typing", username);
-    });
-    */
-   
 });
 
 

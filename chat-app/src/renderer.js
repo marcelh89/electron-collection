@@ -19,18 +19,8 @@ document.addEventListener("DOMContentLoaded", e => {
   ReactDOM.render(<App />, root);
 });
 
-//Socket IO Client
-//const io = require("socket.io-client");
+//Websocket Client
 const WebSocket = require('ws');
-/*const ws = new WebSocket('ws://localhost:3000');
-
-ws.on('open', function open() {
-    this.ws.send(JSON.stringify({event: "connectedUser", content: "test"})); ///< Override the Base Connect Event
-});
- 
-ws.on('message', function incoming(data) {
-  console.log(data);
-});*/
 
 import ChatStore from "./chatStore";
 //Convert Size into Supported DOM Sizes
@@ -68,20 +58,13 @@ class App extends React.Component {
   }
 
   initSocket() {
-    //Connect to the Server using Socket IO
-    //this.io = io("http://localhost:3000");
-    //console.log("IO: ", this.io);
+    //Connect to the Server using websocket
     this.ws = new WebSocket('ws://localhost:3000')
-    
     //console.log("IO: ", this.ws);
 
-    //Connected Status
-    this.setState({ status: "connected" });
-    //Connection Event
-    //this.triggerConnected();
   }
 
-  //Emit Connection Event to the Socket io server
+  //Emit Connection Event to the Websocket server
   triggerConnected() {
     console.log("triggerConnected")
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -89,16 +72,13 @@ class App extends React.Component {
     }else{
       console.log("App Not Initialized Please Call this After initSocket!");
       console.log("Emiiting Connected Users ", this.state.username);
-      //ws.emit("connectedUser", this.state.username); ///< Override the Base Connect Event
       this.ws.send(JSON.stringify({"event": "connectedUser", "content": this.state.username})); ///< Override the Base Connect Event
-  
+      this.setState({ status: "connected" });
     }
-
      
   }
 
   triggerDisconnected() {
-    //ws.emit("disconnectedUser", ChatStore.getUsername());
     this.ws.send(JSON.stringify({"event": "disconnectedUser", "content": ChatStore.getUsername()})); ///< Override the Base Connect Event
 
     //Remove Instance
@@ -177,7 +157,6 @@ class App extends React.Component {
 
       //Disconnect Event
       app.on("will-quit", () => {
-        //ws.emit("disconnectedUser", this.state.username);
         this.ws.send(JSON.stringify({"event": "disconnectedUser", "content": this.state.username})); ///< Override the Base Connect Event
 
       });
@@ -192,7 +171,7 @@ class App extends React.Component {
       });
 
       this.ws.on('message', msg => {
-        console.log("########message############");
+        console.log("received message: ", msg );
         
         //switch for events
         const parsed = JSON.parse(msg);
@@ -217,43 +196,36 @@ class App extends React.Component {
               }));
             }
               break;
+            case "is-typing":
+              this.setState({
+                typing: {
+                  state: true,
+                  username: content
+                }
+              });              
+              break;
+            case "stopped-typing":
+              this.setState({
+                typing: {
+                  state: false,
+                  username: content
+                }
+              });              
+              break;
             default:
         }
 
-
-      });
-
-      //Accpet Messages From Other Clients
-      this.ws.on("chat-message", msg => {
-        console.log("Received New Message ", msg);
-        if (
-          msg.username &&
-          msg.message &&
-          msg.username != this.state.username
-        ) {
-          this.setState(prevState => ({
-            messages: [
-              ...prevState.messages,
-              {
-                message: msg.message,
-                username: msg.username
-              }
-            ]
-          }));
-        }
       });
 
         /* TYPING FEATURE! */
       //On Typing From The Store
       ChatStore.on("is-typing", () => {
         //Trigger Server Typing Event
-        //ws.emit("is-typing", this.state.username);
-        this.ws.send(JSON.stringify({event: "is-typing", content: this.state.username})); ///< Override the Base Connect Event
+        thiz.ws.send(JSON.stringify({event: "is-typing", content: this.state.username})); ///< Override the Base Connect Event
 
       });
       ChatStore.on("stopped-typing", () => {
-        //ws.emit("stopped-typing", this.state.username);
-        this.ws.send(JSON.stringify({event: "stopped-typing", content: this.state.username})); ///< Override the Base Connect Event
+        thiz.ws.send(JSON.stringify({event: "stopped-typing", content: this.state.username})); ///< Override the Base Connect Event
 
       });
 
@@ -282,12 +254,7 @@ class App extends React.Component {
     //Update Messages
     ChatStore.on("new-message", msg => {
       console.log("New MESSAGE", msg, this.state.username);
-      //Send MESSAGE Over Sockets
-      /*ws.emit("chat-message", {
-        message: msg,
-        username: this.state.username
-      });
-      */
+      //Send MESSAGE Over Websockets
 
       this.ws.send(JSON.stringify({event: "chat-message", content: {
         message: msg,
