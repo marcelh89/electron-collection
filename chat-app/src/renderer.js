@@ -19,8 +19,8 @@ document.addEventListener("DOMContentLoaded", e => {
   ReactDOM.render(<App />, root);
 });
 
-//Socket IO Client
-const io = require("socket.io-client");
+//Websocket Client
+const WebSocket = require('ws');
 
 import ChatStore from "./chatStore";
 //Convert Size into Supported DOM Sizes
@@ -52,30 +52,37 @@ class App extends React.Component {
       loginSuccess: false,
       showUpdateUserDetails: false
     };
+
+    this.triggerConnected = this.triggerConnected.bind(this);
+
   }
 
   initSocket() {
-    //Connect to the Server using Socket IO
-    this.io = io("http://localhost:3000");
-    console.log("IO: ", this.io);
-    //Connected Status
-    this.setState({ status: "connected" });
-    //Connection Event
-    this.triggerConnected();
+    //Connect to the Server using websocket
+    this.ws = new WebSocket('ws://localhost:3000')
+    //console.log("IO: ", this.ws);
+
   }
 
-  //Emit Connection Event to the Socket io server
+  //Emit Connection Event to the Websocket server
   triggerConnected() {
-    if (!this.io)
+    console.log("triggerConnected")
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.log("not ready yet")
+    }else{
       console.log("App Not Initialized Please Call this After initSocket!");
-    console.log("Emiiting Connected Users ", this.state.username);
-    this.io.emit("connectedUser", this.state.username); ///< Override the Base Connect Event
+      console.log("Emiiting Connected Users ", this.state.username);
+      this.ws.send(JSON.stringify({"event": "connectedUser", "content": this.state.username})); ///< Override the Base Connect Event
+      this.setState({ status: "connected" });
+    }
+     
   }
 
   triggerDisconnected() {
-    this.io.emit("disconnectedUser", ChatStore.getUsername());
+    this.ws.send(JSON.stringify({"event": "disconnectedUser", "content": ChatStore.getUsername()})); ///< Override the Base Connect Event
+
     //Remove Instance
-    this.io.disconnect();
+    this.ws.close();
     //Show Login Page
     this.setState({ showLoginBox: true, loginSuccess: false });
     //Remove Cookies
@@ -150,41 +157,80 @@ class App extends React.Component {
 
       //Disconnect Event
       app.on("will-quit", () => {
-        this.io.emit("disconnectedUser", this.state.username);
+        this.ws.send(JSON.stringify({"event": "disconnectedUser", "content": this.state.username})); ///< Override the Base Connect Event
+
       });
 
-      //Accpet Messages From Other Clients
-      this.io.on("chat-message", msg => {
-        console.log("Received New Message ", msg);
-        if (
-          msg.username &&
-          msg.message &&
-          msg.username != this.state.username
-        ) {
-          this.setState(prevState => ({
-            messages: [
-              ...prevState.messages,
-              {
-                message: msg.message,
-                username: msg.username
-              }
-            ]
-          }));
+      const thiz = this;
+      this.ws.on('open', function open() {
+        console.log("########open############");
+
+        //init user
+        thiz.triggerConnected();
+
+      });
+
+      this.ws.on('message', msg => {
+        console.log("received message: ", msg );
+        
+        //switch for events
+        const parsed = JSON.parse(msg);
+        const {event, content} = parsed;
+
+        switch(event){
+            case 'chat-message': 
+            console.log("Received New Message ", content);
+            if (
+              content.username &&
+              content.message &&
+              content.username != this.state.username
+            ) {
+              this.setState(prevState => ({
+                messages: [
+                  ...prevState.messages,
+                  {
+                    message: content.message,
+                    username: content.username
+                  }
+                ]
+              }));
+            }
+              break;
+            case "is-typing":
+              this.setState({
+                typing: {
+                  state: true,
+                  username: content
+                }
+              });              
+              break;
+            case "stopped-typing":
+              this.setState({
+                typing: {
+                  state: false,
+                  username: content
+                }
+              });              
+              break;
+            default:
         }
+
       });
 
-      /* TYPING FEATURE! */
+        /* TYPING FEATURE! */
       //On Typing From The Store
       ChatStore.on("is-typing", () => {
         //Trigger Server Typing Event
-        this.io.emit("is-typing", this.state.username);
+        thiz.ws.send(JSON.stringify({event: "is-typing", content: this.state.username})); ///< Override the Base Connect Event
+
       });
       ChatStore.on("stopped-typing", () => {
-        this.io.emit("stopped-typing", this.state.username);
+        thiz.ws.send(JSON.stringify({event: "stopped-typing", content: this.state.username})); ///< Override the Base Connect Event
+
       });
 
       //On Start Typing From the Sockets
-      this.io.on("is-typing", user => {
+      this.ws.on("is-typing", user => {
         //Set Typing Object (Started)
         this.setState({
           typing: {
@@ -194,7 +240,7 @@ class App extends React.Component {
         });
       });
       //On Stopped Typing
-      this.io.on("stopped-typing", user => {
+      this.ws.on("stopped-typing", user => {
         //Set Typing Object (Stopped)
         this.setState({
           typing: {
@@ -208,11 +254,13 @@ class App extends React.Component {
     //Update Messages
     ChatStore.on("new-message", msg => {
       console.log("New MESSAGE", msg, this.state.username);
-      //Send MESSAGE Over Sockets
-      this.io.emit("chat-message", {
+      //Send MESSAGE Over Websockets
+
+      this.ws.send(JSON.stringify({event: "chat-message", content: {
         message: msg,
         username: this.state.username
-      });
+      }})); ///< Override the Base Connect Event
+
 
       //Update Messages
       this.setState(prevState => ({

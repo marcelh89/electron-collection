@@ -1,8 +1,11 @@
 const express = require("express");
 const app = express();
 const port = 3000;
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
+const server = require("http").createServer(app);
+const WebSocket = require("ws");
+const wss = new WebSocket.Server({server});
+
+//const io = require("socket.io")(http);
 let mongoos = require("mongoose");
 
 let jwt = require("jsonwebtoken");
@@ -47,32 +50,61 @@ userRoutes.route(app);
 
 let users = require("../api/users");
 
-//Main Socket Connection
-io.on("connection", socket => {
-    socket.on("connectedUser", username => {
-        users.addNewUser(username);
-        console.log("New User ", username);
+function broadcastMessage (ws, message) {
+    wss.clients.forEach(function each(client) {
+        //if (ws != client && client.readyState === WebSocket.OPEN) {  //everyone but the one who sent the message
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(message));
+        }
+    });
+}
+
+wss.on("connection", (ws) => {
+
+    ws.on('message', function incoming(message) {
+        console.log('received: %s', message);
+
+        //switch for events
+        const parsed = JSON.parse(message);
+        const {event, content} = parsed;
+
+
+        switch(event){
+            case 'connectedUser': 
+                console.log("connectedUser");
+                users.addNewUser(content);
+                break;
+            case 'disconnectedUser':
+                console.log("disconnectedUser");
+                break;
+            case 'open': 
+                console.log("open");
+                break;
+            case 'is-typing':
+                console.log("is-typing");
+                broadcastMessage(ws, parsed);
+                break;
+            case 'stopped-typing':
+                console.log("stopped-typing");
+                broadcastMessage(ws, parsed);
+                break;
+            case 'chat-message':
+                console.log("chat-message", content );
+                broadcastMessage(ws, parsed);
+                break;
+            default:
+                console.log("unknown event");
+
+        }
+
+        // broadcastMessage(ws, parsed);
+
     });
 
-    socket.on("chat-message", msg => {
-        console.log("New Message " + msg.message);
-        socket.broadcast.emit("chat-message", msg);
-    });
-
-    /* Typing */
-    //Started Typing
-    socket.on("is-typing", username => {
-        //Send Target Username (Started)
-        socket.broadcast.emit("is-typing", username);
-    });
-    //Stopped Typing
-    socket.on("stopped-typing", username => {
-        //Send Target UserName (Stopped)
-        socket.broadcast.emit("stopped-typing", username);
-    });
 });
 
+
 //Server Listens On Port
-http.listen(port, () => {
+server.listen(port, () => {
     console.log("Server Is Running Port: " + port);
 });
