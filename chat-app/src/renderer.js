@@ -753,6 +753,8 @@ class ChatContainer extends React.Component {
                 );
               
             })}{" "}
+
+            {typing && <li>{typing}</li>}
           </ul>{" "}
           
         </div>{" "}
