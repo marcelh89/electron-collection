@@ -64,7 +64,7 @@ export default class SideArea extends React.Component {
     render() {
         return (
             <div id="side-area" className="col-md-3 flex-grow flex-parent">
-                <ConnectedUsers connected={this.state.connectedUsers} />
+                <ConnectedUsers username={this.props.username} connected={this.state.connectedUsers} />
                 <div className="user-settings">
                     <Popover
                         position={Position.RIGHT}

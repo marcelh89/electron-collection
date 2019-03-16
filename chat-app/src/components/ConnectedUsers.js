@@ -4,7 +4,7 @@ export default (props) => {
     console.log("PROPS: ", props);
     return (
         <div className="users-container">
-            <div className="bordered-header">Online</div>
+            <div className="bordered-header">{props.username}</div>
             <div
                 className="flex-container-vert"
                 style={{ alignItems: "center", marginTop: "11px" }}
