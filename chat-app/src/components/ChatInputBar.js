@@ -38,10 +38,11 @@ export default class ChatInputBar extends React.Component {
   handleSubmit(e) {
     e.preventDefault();
 
-    //Store Message
-      this.props.ChatStore.addMessage(this.state.text);
-
-    this.state.input.value = ""; ///< Empty Input Field
+    if (this.state.input.value){
+        this.props.ChatStore.addMessage(this.state.text);
+        this.state.input.value = ""; ///< Empty Input Field
+    }
+    
   }
 
   render() {
