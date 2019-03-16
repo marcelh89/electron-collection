@@ -190,7 +190,8 @@ class App extends React.Component {
                   ...prevState.messages,
                   {
                     message: content.message,
-                    username: content.username
+                    username: content.username,
+                    created: content.created
                   }
                 ]
               }));
@@ -256,8 +257,13 @@ class App extends React.Component {
       console.log("New MESSAGE", msg, this.state.username);
       //Send MESSAGE Over Websockets
 
+      const now = new Date();
+      const created = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+
+
       this.ws.send(JSON.stringify({event: "chat-message", content: {
         message: msg,
+        created: created,
         username: this.state.username
       }})); ///< Override the Base Connect Event
 
@@ -268,6 +274,7 @@ class App extends React.Component {
           ...prevState.messages,
           {
             message: msg,
+            created: created,
             username: this.state.username
           }
         ]
@@ -707,6 +714,7 @@ class ChatContainer extends React.Component {
     let typing;
     //if(this.props.typing.state)
     console.log("Typing: 5", this.props.typing);
+    
     if (this.props.typing.state)
       typing = this.props.typing.username + " is typing...";
     else typing = "";
@@ -729,31 +737,24 @@ class ChatContainer extends React.Component {
         >
           <ul className="messages-container-owner">
             {" "}
-            {this.props.messages.map((msg, index) => {
-              if (this.props.current == msg.username) {
+            {this.props.messages.map((content, index) => {
+
+              const username = this.props.current == content.username ? 'Me' : content.username;
+
                 return (
-                  <li className="message" key={index}>
-                    {" "}
-                    {"You - " + msg.message}{" "}
+                  <li className="message-container" key={index}>
+                    <a href="https://placeholder.com"><img src="https://via.placeholder.com/32" /></a>
+                    <div className="message-subcontainer">
+                      <div>{username + " - " + content.created}{" "}</div>
+                      <div>{content.message}{" "}</div>
+                    </div>
+                   
                   </li>
                 );
-              }
+              
             })}{" "}
           </ul>{" "}
-          <ul className="messages-container-sender">
-            {" "}
-            {this.props.messages.map((msg, index) => {
-              if (this.props.current != msg.username) {
-                return (
-                  <li className="message" key={index}>
-                    {" "}
-                    {msg.username + " - " + msg.message}{" "}
-                  </li>
-                );
-              }
-            })}{" "}
-            {typing != "" && <li>{typing}</li>}{" "}
-          </ul>{" "}
+          
         </div>{" "}
       </div>
     );
